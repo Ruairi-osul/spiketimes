@@ -22,9 +22,11 @@ def homogenous_poisson_process(rate, t_stop, t_start=0):
 def imhomogenous_poisson_process(time_rate: list, t_start=0):
     """Simulate an imhomogenous poisson process
 
-    time_rate: list of tuples with elements (timeperiod, rate)
-    t_stop: the maximum time allowed event time
-    t_start: the start time
+    time_rate: List of tuples with elements (time_period, rate).
+               For each sucessive tuple, a homogenous process of duration time_period with 
+               rate (intensity) rate will be appended 
+    t_stop: The maximum time allowed event time
+    t_start: The start time
     """
     out = np.array([])
     for timeperiod, rate in time_rate:

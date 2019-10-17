@@ -5,6 +5,9 @@ from matplotlib.ticker import MaxNLocator
 
 
 def psth(spike_times, events, t_before, ax=None, **kwargs):
+    """Contruct a peristimulus time histogram of spike_times with respect to events
+    t_before defines the time before time 0 (when the event occured) to include 
+    in the histogram"""
     # TODO implement binwidth functionality
     if ax is None:
         _, ax = plt.subplots()
@@ -16,6 +19,9 @@ def psth(spike_times, events, t_before, ax=None, **kwargs):
 def add_event_vlines(
     ax, events, linestyle="--", color="grey", t_min=None, t_max=None, **kwargs
 ):
+    """Add vertical lines at the point(s) specified in events
+    t_min and t_max define minimum and maximum timepoints for events i.e. no
+    events outside these limits will be plotted"""
     try:
         _ = (x for x in events)
     except TypeError:
