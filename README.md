@@ -10,7 +10,7 @@ Generate homogeneous or imhomogeneous poisson processes. Some people beleive tha
 
 ## Plotting
 
-Supports raster plots of single or multiple spiketrains as well as peri-stimulus time histograms (PSTHs) PSTHs plot the distrobution of latencies of spiking events relative to some event.
+Supports raster plots of single or multiple spiketrains as well as peri-stimulus time histograms (PSTHs). PSTHs plot the distrobution of latencies of spiking events relative to some event.
 
 ## Alignment
 
