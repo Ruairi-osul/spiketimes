@@ -5,7 +5,7 @@ spiketimes is a small python package for simulating and analysing simple spiketr
 
 ## Simulation
 
-Generate homogeneous or imhomogeneous poisson processes. Some people beleive that these processes estimate spiking behaviour of neurons. Homogeneous poisson processes model spike trains with constant intensity (or "firing rate"). Immhomogenous poisson processes model spike trains with time varying intensity.
+Generate homogeneous or imhomogeneous poisson processes. Some people beleive that these processes model spiking behaviour of neurons. Homogeneous poisson processes model spike trains with constant intensity (or "firing rate"). Immhomogenous poisson processes model spike trains with time varying intensity.
 
 
 ## Plotting
