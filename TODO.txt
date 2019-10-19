@@ -1,0 +1,26 @@
+tests: 
+    - finish writing tests for existing functions
+
+ new features:
+    - binned firing rate 
+        - given an array of spiking events, creates a
+
+    - isi 
+        - given an array of spike times, give the inter spike intervals
+    
+    - ifr 
+        - zeros in given bin width 
+        - bin the spikes where it was x 
+        - convolve with some kernel
+
+    - binned spike train 
+        - X 
+    
+    - cross corralogram 
+        - X 
+    
+    - coherance of spike trains 
+        - X 
+    
+    - fft of spike train 
+        - X 
