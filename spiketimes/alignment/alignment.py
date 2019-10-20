@@ -41,3 +41,14 @@ def align_to(to_be_aligned, to_align_to, no_beyond=False):
     aligned_data = (to_be_aligned - to_align_to[idx - 1]).astype(np.float)
     aligned_data[aligned_data < 0] = np.nan
     return aligned_data
+
+
+def negative_align(to_be_aligned, to_align_to):
+    """Align each element in to_be_aligned to the closest larger element
+    in to_align_to"""
+    max_idx = len(to_align_to) - 1
+    idx = np.searchsorted(to_align_to, to_be_aligned).astype(np.int)
+    idx[idx < max_idx] += 1
+    aligned_data = (to_be_aligned - to_align_to[idx - 1]).astype(np.float)
+    aligned_data[aligned_data > 0] = np.nan
+    return aligned_data
