@@ -52,3 +52,27 @@ def negative_align(to_be_aligned, to_align_to):
     aligned_data = (to_be_aligned - to_align_to[idx - 1]).astype(np.float)
     aligned_data[aligned_data > 0] = np.nan
     return aligned_data
+
+
+def nearest_smaller_event(spike_times, events, returns="index"):
+    """Given an array of spiketimes and events array, calculates
+    the index or value of the closest smaller event
+
+    spike_times: an array of spiketimes
+    events: an event of array times
+    returns: {"index", "value"} specify whether to return the index or value 
+        of the closest event 
+    """
+    pass
+
+
+def nearest_larger_event(spike_times, events):
+    """Given an array of spiketimes and events array, calculates
+    the index or value of the closest larger event
+
+    spike_times: an array of spiketimes
+    events: an event of array times
+    returns: {"index", "value"} specify whether to return the index or value 
+        of the closest event 
+    """
+    pass
