@@ -6,8 +6,8 @@ import pytest
 class TestHomogenous:
     def test_num_output_samples(self):
         rate = 4
-        n_time_units = 120
-        n_bootstrap_replicates = 4000
+        n_time_units = 30
+        n_bootstrap_replicates = 1000
         expected = int(rate * n_time_units)
         actual = int(
             np.mean(
@@ -19,7 +19,7 @@ class TestHomogenous:
                 )
             )
         )
-        assert actual == expected
+        assert np.absolute(actual - expected) < 5
 
     def test_output_shape(self):
         expected = 1
@@ -34,7 +34,7 @@ class TestImhomogenous:
         rate_1 = 2
         rate_2 = 3
         time_rate = [(time_1, rate_1), (time_2, rate_2)]
-        n_bootstrap_replicates = 4000
+        n_bootstrap_replicates = 1000
         expected = int((time_1 * rate_1) + (time_2 * rate_2))
         actual = int(
             np.mean(
@@ -46,7 +46,7 @@ class TestImhomogenous:
                 )
             )
         )
-        assert actual == expected
+        assert np.absolute(actual - expected) < 5
 
     def test_output_shape(self):
         expected = 1
