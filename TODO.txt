@@ -1,7 +1,22 @@
+bugs:
+    - fix alignment in psth 
+
 tests: 
-    - finish writing tests for existing functions
+    - test negative align 
+    - test psth 
+    - test addevent v lines
+
+function improvements
+    - add better defaults for rasters
+    - add better defaults for addevent vlines
+
 
  new features:
+    ALIGNMENT:
+        - finish two new functions
+
+
+    STATISITCS:
     - binned firing rate 
         - given an array of spiking events, creates a
 
