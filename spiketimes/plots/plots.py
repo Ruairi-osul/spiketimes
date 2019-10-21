@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from spiketimes import align_to
+from spiketimes.alignment import align_to, negative_align
 from matplotlib.ticker import MaxNLocator
 
 
-def psth(spike_times, events, t_before, max_latency=1, ax=None, **kwargs):
+def psth(spike_times, events, t_before=0.2, max_latency=2, ax=None, **kwargs):
     """Contruct a peristimulus time histogram of spike_times with respect to events
     t_before defines the time before time 0 (when the event occured) to include 
     in the histogram"""
@@ -12,7 +12,14 @@ def psth(spike_times, events, t_before, max_latency=1, ax=None, **kwargs):
     # TODO implement maximum latencies
     if ax is None:
         _, ax = plt.subplots()
-    latencies = align_to(spike_times, events) - t_before
+    postive_latencies = align_to(spike_times, events, no_beyond=True)
+    negative_latencies = negative_align(spike_times, events, no_before=True)
+    latencies = np.concatenate(
+        (
+            negative_latencies[np.logical_not(np.isnan(negative_latencies))],
+            postive_latencies[np.logical_not(np.isnan(postive_latencies))],
+        )
+    )
     latencies = latencies[(latencies >= -t_before) & (latencies <= max_latency)]
 
     ax.hist(latencies, **kwargs)

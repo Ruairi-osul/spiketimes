@@ -23,7 +23,7 @@ def align_to(to_be_aligned, to_align_to, no_beyond=False):
         pass
     if not _to_align_to_isiter and _to_be_aligned_isiter:
         raise TypeError(
-            "Must not pass two objects of length one."
+            "Must not pass two objects of length one.\n"
             "At least argument must be an iterable"
         )
     if not isinstance(to_be_aligned, np.ndarray) or not isinstance(
