@@ -17,6 +17,4 @@ def ifr(spiketimes, fs, t_start=None, t_stop=None, sigma=None, as_df=True):
     if not as_df:
         return df["time"].values, smoothed
     else:
-        return pd.DataFrame(
-            {"time": df["time"], "ifr": smoothed, "count": df["spike_count"]}
-        )
+        return pd.DataFrame({"time": df["time"], "ifr": smoothed})
