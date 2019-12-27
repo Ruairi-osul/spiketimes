@@ -12,9 +12,7 @@ def align_to(to_be_aligned, to_align_to, no_beyond=False):
 
     if isinstance(to_be_aligned, pd.core.series.Series):
         to_be_aligned = to_be_aligned.values
-        print("done")
     if isinstance(to_align_to, pd.core.series.Series):
-        print("done")
         to_align_to = to_align_to.values
 
     _to_be_aligned_isiter = False
