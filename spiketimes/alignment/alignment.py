@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 def align_to(to_be_aligned, to_align_to, no_beyond=False):
@@ -8,6 +9,13 @@ def align_to(to_be_aligned, to_align_to, no_beyond=False):
     Optionally specify no_beyond. If specified, sets all elements in to_be_aligned larger than to_align_to
     equal to np.nan
     """
+
+    if isinstance(to_be_aligned, pd.core.series.Series):
+        to_be_aligned = to_be_aligned.values
+        print("done")
+    if isinstance(to_align_to, pd.core.series.Series):
+        print("done")
+        to_align_to = to_align_to.values
 
     _to_be_aligned_isiter = False
     _to_align_to_isiter = False
@@ -49,6 +57,11 @@ def negative_align(to_be_aligned, to_align_to, no_before=False):
     
     Optionally return nan for elements in to_be_aligned occuring before the
     first element in to_align_to"""
+
+    if isinstance(to_be_aligned, pd.core.series.Series):
+        to_be_aligned = to_be_aligned.values
+    if isinstance(to_align_to, pd.core.series.Series):
+        to_align_to = to_align_to.values
 
     _to_be_aligned_isiter = False
     _to_align_to_isiter = False
