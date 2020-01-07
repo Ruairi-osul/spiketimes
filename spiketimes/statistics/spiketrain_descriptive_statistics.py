@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import variation
 
 
 def inter_spike_intervals(spiketrain):
@@ -11,3 +12,9 @@ def inter_spike_intervals(spiketrain):
     # TODO tests
 
     return np.diff(np.sort(spiketrain))
+
+def cov(isi, axis=0):
+    """Computes the coefficient of variation.
+    Simply wraps the scipy.stats variation function
+    """
+    return variation(isi, axis=axis)
