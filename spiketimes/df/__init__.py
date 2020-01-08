@@ -1,4 +1,9 @@
-from .conversion import list_to_df, ifr_by_neuron
+from .conversion import (
+    list_to_df,
+    ifr_by_neuron,
+    spikes_df_to_binned_df,
+    df_binned_to_bool,
+)
 from .baseline import create_baseline_df, zscore_normalise_by_neuron
 from .apply import apply_by_neuron_rolling
 from .alignment import align_df

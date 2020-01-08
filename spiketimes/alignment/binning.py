@@ -3,6 +3,8 @@ import pandas as pd
 
 
 def binned_spiketrain(spiketrain, fs, t_stop=None, t_start=None, as_df=False):
+    if isinstance(spiketrain, pd.core.series.Series):
+        spiketrain = spiketrain.values
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:
@@ -14,3 +16,6 @@ def binned_spiketrain(spiketrain, fs, t_stop=None, t_start=None, as_df=False):
         return df
     else:
         return edges[1:], values
+
+def bin_to_bool(binned_arr: np.ndarray):
+    return np.where(binned_arr != 0, 1, 0)
