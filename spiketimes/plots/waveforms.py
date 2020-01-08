@@ -54,7 +54,7 @@ def plot_waveform_peaks(
         kind="scatter",
         **peaks_plot_kwargs
     )
-    ax.set_ylabel("Time [Samples]")
-    ax.set_xlabel("Voltage")
+    ax.set_xlabel("Time [Samples]")
+    ax.set_ylabel("Voltage")
     return ax
 

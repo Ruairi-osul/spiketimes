@@ -1,6 +1,116 @@
 import numpy as np
 import pandas as pd
 from scipy.ndimage import gaussian_filter1d
+from scipy.spatial.distance import euclidean
+
+
+def peak_asymmetry_by_neuron(
+    df: pd.core.frame.DataFrame,
+    peak_names: list = None,
+    neuron_col: str = "neuron_id",
+    peak_value_col: str = "peak_idx",
+    peak_name_col: str = "peak_name",
+):
+    """
+    Given a dataframe containing a peaks of a single average waveform, 
+    caluclates its peak assymetry
+    Asymmertry:
+        (B - A) / (A + B)
+
+    params:
+        df: df of waveform peaks
+        peak_names: the names of the peaks contained in peak_name_col for
+                    use in the calculation
+        neuron_col: label of the column containing neuron ids
+        peak_name_col: label of the column containg peak names
+        peak_value_col: label of the column containing peak values
+
+    returns:
+        pd.DataFrame containg columns {neuron_id, peak_asymmetry}
+    """
+    return (
+        df.groupby(neuron_col)
+        .apply(
+            lambda x: calculate_peak_asymmetry(
+                x,
+                peak_names=peak_names,
+                peak_value_col=peak_value_col,
+                peak_name_col=peak_name_col,
+            )
+        )
+        .reset_index()
+        .rename(columns={0: "peak_asymmetry"})
+    )
+
+
+def calculate_peak_asymmetry(
+    df: pd.core.frame.DataFrame,
+    peak_names: list = None,
+    peak_value_col: str = "peak_idx",
+    peak_name_col: str = "peak_name",
+):
+    """
+    Given a dataframe containing a peaks of a single average waveform, 
+    caluclates its peak assymetry 
+    Asymmertry:
+        (B - A) / (A + B)
+
+    params:
+        df: df of waveform peaks
+        peak_names: the names of the peaks contained in peak_name_col for
+                    use in the calculation
+        peak_name_col: label of the column containg peak names
+        peak_value_col: label of the column containing peak values
+
+    returns:
+        float corresponding to the asymmetry
+    """
+    if peak_names is None:
+        peak_names = ["initiation", "ahp"]
+
+    first_value = df[df[peak_name_col] == peak_names[0]][peak_value_col].values[0]
+    second_value = df[df[peak_name_col] == peak_names[1]][peak_value_col].values[0]
+
+    return (second_value - first_value) / (first_value + second_value)
+
+
+def waveform_width_by_neuron(
+    df: pd.core.frame.DataFrame,
+    peak_names: list = None,
+    neuron_col: str = "neuron_id",
+    peak_name_col: str = "peak_name",
+    peak_idx_col: str = "peak_idx",
+):
+    return (
+        df.groupby(neuron_col)
+        .apply(
+            lambda x: calculate_waveform_width(
+                x,
+                peak_names=peak_names,
+                peak_name_col=peak_name_col,
+                peak_idx_col=peak_idx_col,
+            )
+        )
+        .reset_index()
+        .rename(columns={0: "waveform_width"})
+    )
+
+
+def calculate_waveform_width(
+    df,
+    peak_names: list = None,
+    peak_name_col: str = "peak_name",
+    peak_idx_col: str = "peak_idx",
+):
+    if df[peak_idx_col].isna().any():
+        raise ValueError("Cannot run on data with NaNs. Use df.dropna() first")
+    if peak_names is None:
+        peak_names = ["minimum", "ahp"]
+    first_value = df[df[peak_name_col] == peak_names[0]][peak_idx_col].values
+    second_value = df[df[peak_name_col] == peak_names[1]][peak_idx_col].values
+    assert len(first_value) == 1
+    assert len(second_value) == 1
+    return euclidean(first_value, second_value)
 
 
 def waveform_peaks_by_neuron(
