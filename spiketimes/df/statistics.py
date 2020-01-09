@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+from ..statistics import cv_isi
 
 
 def mean_firing_rate_ifr_by_neuron(
@@ -30,3 +32,42 @@ def mean_firing_rate_ifr(df: pd.core.frame.DataFrame, ifr_col: str = "ifr"):
     Given a dataframe containing a ifr column, calculates the mean 
     """
     return df[ifr_col].mean()
+
+
+def cv_isi_by_neuron(
+    df: pd.core.frame.DataFrame,
+    spiketimes_col: str = "spiketimes",
+    neuron_col: str = "neuron_id",
+):
+    return (
+        df.groupby(neuron_col)
+        .apply(lambda x: cv_isi(x[spiketimes_col]))
+        .reset_index()
+        .rename(columns={0: "cv_isi"})
+    )
+
+
+def fraction_silent_by_neuron(
+    df: pd.core.frame.DataFrame,
+    bool_col: str = "has_spike",
+    neuron_col: str = "neuron_id",
+):
+    """
+    Given a df containing a column identifying neurons and a boolean column
+    refering to whether a spike occured, calculates the fraction of bins containing
+    a spike
+
+    params:
+        df: df containing the data
+        bool_col: 
+
+    returns:
+        a pandas dataframe containing columns {neuron_col, fraction_silent} 
+    """
+    return (
+        df.groupby(neuron_col)
+        .apply(lambda x: np.mean(x[bool_col]))
+        .reset_index()
+        .rename(columns={0: "fraction_silent"})
+    )
+

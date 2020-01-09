@@ -14,4 +14,8 @@ from .waveforms import (
     calculate_peak_asymmetry,
     waveform_width_by_neuron,
 )
-from .statistics import mean_firing_rate_ifr_by_neuron
+from .statistics import (
+    mean_firing_rate_ifr_by_neuron,
+    cv_isi_by_neuron,
+    fraction_silent_by_neuron,
+)
