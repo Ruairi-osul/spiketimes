@@ -19,3 +19,4 @@ from .statistics import (
     cv_isi_by_neuron,
     fraction_silent_by_neuron,
 )
+from .correlate import correlate_all_neurons, correlate_all_neurons_by

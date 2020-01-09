@@ -21,7 +21,7 @@ def cov(isi: np.ndarray, axis=0):
     return variation(isi, axis=axis)
 
 
-def cv_isi(spiketrain):
+def cv_isi(spiketrain: np.ndarray):
     """
     given an array of spike times, calculates the coefficient of 
     variation of interspike intervals

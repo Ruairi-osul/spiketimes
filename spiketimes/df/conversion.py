@@ -46,6 +46,8 @@ def spikes_df_to_binned_df(
         t_start: the time after which the first bin will start. defaults to 0.
         t_stop: the maximum time for the time bins 
     """
+    if t_stop is None:
+        t_stop = df[spiketimes_col].values[-1]
 
     return (
         df.groupby(neuron_col)
