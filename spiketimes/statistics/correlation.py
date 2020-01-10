@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
+from itertools import combinations
 from ..alignment import binned_spiketrain
 from ..statistics import ifr
 from ..simulate import shuffled_isi_spiketrains
+from .utils import _random_combination
 
 
 def spike_count_correlation_test(
@@ -14,11 +16,31 @@ def spike_count_correlation_test(
     min_firing_rate: float = None,
     t_start: float = None,
     t_stop: float = None,
+    tail: str = "two_tailed",
 ):
-    n_surrogates = int(n_boot * 2)
+    r = spike_count_correlation(spiketrain_1, spiketrain_2, fs=fs)
+    n_surrogates = int(n_boot / 3)
     st1_shuffled = shuffled_isi_spiketrains(spiketrain_1, n=n_surrogates)
     st2_shuffled = shuffled_isi_spiketrains(spiketrain_2, n=n_surrogates)
-    pass
+    combs = [_random_combination(np.arange(n_surrogates), r=2) for _ in range(n_boot)]
+    replicates = np.apply_along_axis(
+        lambda x: spike_count_correlation(st1_shuffled[x[0]], st2_shuffled[x[1]], fs=1),
+        arr=np.array(combs),
+        axis=1,
+    )
+    if tail == "two_tailed":
+        replicates = np.absolute(replicates)
+        p = np.mean(replicates >= r)
+    elif tail == "upper":
+        p = np.mean(replicates >= p)
+    elif tail == "lower":
+        p = np.mean(replicates <= p)
+    else:
+        raise ValueError(
+            "Could not parse tail value. Select one of"
+            "{'Two tailed', 'lower', 'upper'} - 'upper' if hypothesising a positive r"
+        )
+    return r, p
 
 
 def spike_count_correlation(
@@ -44,6 +66,9 @@ def spike_count_correlation(
                          firing rate of the two spiketrains exeedes this value
         t_start: The startpoint of the first bin. Defaults to the first spike in the two trains
         t_stop: The maximum time for a time bin. Defaults to the last spike in the two trians
+    
+    returns:
+        pearson's r 
     """
 
     if t_start is None:
