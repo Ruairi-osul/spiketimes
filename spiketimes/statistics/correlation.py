@@ -18,6 +18,26 @@ def spike_count_correlation_test(
     t_stop: float = None,
     tail: str = "two_tailed",
 ):
+    """
+    Given two numpy arrays of spiketimes and some sampling rate, calculates
+    the pearson correlation coeficient for those neurons and calculates a p value
+    by shuffling generating surrogate spiketrains with shuffled interspike intervals
+
+    params:
+        spiketrain_1: The first spiketrain to correlate. 
+                      Should be an nd.array of spiketimes in seconds.
+        spiketrain_2: The second spiketrain to correlate. 
+                      Should be an nd.array of spiketimes in seconds.
+        fs: The sampling rate use to bin the spikes before correlating
+        min_firing_rate: If selected, selects only bins where the geometric mean
+                         firing rate of the two spiketrains exeedes this value
+        t_start: The startpoint of the first bin. Defaults to the first spike in the two trains
+        t_stop: The maximum time for a time bin. Defaults to the last spike in the two trians
+    
+    returns:
+        pearson's r
+        p value
+    """
     r = spike_count_correlation(spiketrain_1, spiketrain_2, fs=fs)
     n_surrogates = int(n_boot / 3)
     st1_shuffled = shuffled_isi_spiketrains(spiketrain_1, n=n_surrogates)
@@ -30,11 +50,11 @@ def spike_count_correlation_test(
     )
     if tail == "two_tailed":
         replicates = np.absolute(replicates)
-        p = np.mean(replicates >= r)
+        p = np.nanmean(replicates >= np.absolute(r))
     elif tail == "upper":
-        p = np.mean(replicates >= p)
+        p = np.nanmean(replicates >= p)
     elif tail == "lower":
-        p = np.mean(replicates <= p)
+        p = np.nanmean(replicates <= p)
     else:
         raise ValueError(
             "Could not parse tail value. Select one of"
