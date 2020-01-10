@@ -1,7 +1,10 @@
 import numpy as np
 from scipy.stats import variation
 
+# from numba import jit
 
+
+# @jit(nopython=True)
 def inter_spike_intervals(spiketrain: np.ndarray):
     """
     given an array of spike times, returns an 
@@ -14,7 +17,7 @@ def inter_spike_intervals(spiketrain: np.ndarray):
     return np.diff(np.sort(spiketrain))
 
 
-def cov(isi: np.ndarray, axis=0):
+def cov(isi: np.ndarray, axis: int = 0):
     """Computes the coefficient of variation.
     Simply wraps the scipy.stats variation function
     """

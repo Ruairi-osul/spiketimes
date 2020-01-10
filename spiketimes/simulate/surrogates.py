@@ -1,5 +1,5 @@
+from .utils import _isi
 import numpy as np
-from ..statistics import inter_spike_intervals
 
 
 def shuffled_isi_spiketrain(spiketrain: np.ndarray):
@@ -14,7 +14,7 @@ def shuffled_isi_spiketrain(spiketrain: np.ndarray):
         np.array of spiketimes 
     """
     spiketrain = np.copy(spiketrain)
-    isi = inter_spike_intervals(spiketrain)
+    isi: np.ndarray = _isi(spiketrain)
     np.random.shuffle(isi)
     return np.cumsum(isi)
 
