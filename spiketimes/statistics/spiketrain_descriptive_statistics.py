@@ -1,10 +1,7 @@
 import numpy as np
 from scipy.stats import variation
 
-# from numba import jit
 
-
-# @jit(nopython=True)
 def inter_spike_intervals(spiketrain: np.ndarray):
     """
     given an array of spike times, returns an 

@@ -2,7 +2,6 @@ from ..alignment import binned_spiketrain
 from elephant.statistics import sskernel
 from scipy.ndimage import gaussian_filter1d
 import pandas as pd
-from numba import jit
 
 
 def ifr(spiketimes, fs, t_start=None, t_stop=None, sigma=None, as_df=True):
@@ -19,11 +18,3 @@ def ifr(spiketimes, fs, t_start=None, t_stop=None, sigma=None, as_df=True):
         return df["time"].values, smoothed
     else:
         return pd.DataFrame({"time": df["time"], "ifr": smoothed})
-
-
-# @jit(no_python=True)
-# def _ifr_fast(spiketimes, fs, t_start=None, t_stop=None, sigma=None, as_df=True):
-#     if t_start is None:
-#         t_start = spiketimes[0]
-#     if t_stop is None:
-#         t_stop = spiketimes[-1]
