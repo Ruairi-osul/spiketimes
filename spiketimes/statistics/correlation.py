@@ -43,7 +43,8 @@ def spike_count_correlation_test(
     st1_shuffled = shuffled_isi_spiketrains(spiketrain_1, n=n_surrogates)
     st2_shuffled = shuffled_isi_spiketrains(spiketrain_2, n=n_surrogates)
     combs = np.array(
-        [_random_combination(np.arange(n_surrogates), r=2) for _ in range(n_boot)]
+        [_random_combination(np.arange(n_surrogates), r=2) for _ in range(n_boot)],
+        dtype=np.int64,
     )
     replicates = np.apply_along_axis(
         lambda x: spike_count_correlation(st1_shuffled[x[0]], st2_shuffled[x[1]], fs=1),
