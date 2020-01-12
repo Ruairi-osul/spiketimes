@@ -53,7 +53,7 @@ def cross_corr_df(
                   shift the correlation
     
     """
-
+    # multiprocessing
     neurons = df[neuron_col].unique()
     frames: list = []
     for neuron_1, neuron_2 in combinations(neurons, r=2):

@@ -13,6 +13,7 @@ def spike_count_correlation_df(
     t_start: float = None,
     t_stop: float = None,
 ):
+    # multiprocessing
     """
     Given a df containing one row per spike time and a neuron_id label,
     calculates the pearson correlation between spike counts.
@@ -91,6 +92,7 @@ def spike_count_correlation_between_groups(
         pearson correlation coefficients and group membership.
         Columns: {'group_1', 'group_2', 'neuron_1', 'neuron_2', 'pearson_r'}
     """
+    # multiprocessing
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
@@ -159,6 +161,7 @@ def spike_count_correlation_df_test(
         pearson correlation coefficients and p vaue.
         Columns: {'neuron_1', 'neuron_2', 'r', 'p'}
     """
+    # multiprocessing
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
@@ -226,6 +229,7 @@ def spike_count_correlation_between_groups_test(
         pearson correlation coefficients and group membership.
         Columns: {'group_1', 'group_2', 'neuron_1', 'neuron_2', 'pearson_r'}
     """
+    # multiprocessing
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
