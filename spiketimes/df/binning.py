@@ -15,6 +15,7 @@ def bin_df(
     Given a dataframe containing a continuous column, and bin values,
     appends the appropriate index and or value to the dataframe
     """
+    # make this a numpy function in the original package
     df[bin_idx_name] = np.digitize(df[colname], bins) - 1
     if return_values:
         df[bin_val_name] = bins[df[bin_idx_name].tolist()]

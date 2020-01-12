@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import multiprocessing
 from itertools import combinations, product
 from ..statistics import spike_count_correlation, spike_count_correlation_test
 
@@ -13,7 +14,6 @@ def spike_count_correlation_df(
     t_start: float = None,
     t_stop: float = None,
 ):
-    # multiprocessing
     """
     Given a df containing one row per spike time and a neuron_id label,
     calculates the pearson correlation between spike counts.
@@ -34,37 +34,40 @@ def spike_count_correlation_df(
         pearson correlation coefficients. 
         Columns: {'neuron_1', 'neuron_2', 'pearson_r'}
     """
+
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
         t_stop = np.max(df[spiketimes_col])
-    frames: list = []
     neurons = df[neuron_col].unique()
-    for comb in combinations(neurons, r=2):
-        frames.append(
-            pd.Series(
-                {
-                    "neuron_1": comb[0],
-                    "neuron_2": comb[1],
-                    "pearson_r": spike_count_correlation(
-                        df[df[neuron_col] == comb[0]][spiketimes_col].values,
-                        df[df[neuron_col] == comb[1]][spiketimes_col].values,
-                        fs=fs,
-                        min_firing_rate=min_firing_rate,
-                        t_start=t_start,
-                        t_stop=t_stop,
-                    ),
-                }
-            )
-        )
-    return pd.concat(frames, axis=1).transpose()
+
+    neuron_combs = list(combinations(neurons, r=2))
+    args = [
+        [
+            df[df[neuron_col] == neuron_1][spiketimes_col].values,
+            df[df[neuron_col] == neuron_2][spiketimes_col].values,
+            fs,
+            min_firing_rate,
+            t_start,
+            t_stop,
+        ]
+        for neuron_1, neuron_2 in neuron_combs
+    ]
+
+    with multiprocessing.Pool() as p:
+        corrs = p.starmap(spike_count_correlation, args)
+
+    neurons = [[n1 for n1, n2 in neuron_combs], [n2 for n1, n2 in neuron_combs]]
+    return pd.DataFrame(
+        {"neuron_1": neurons[0], "neuron_2": neurons[1], "pearson_r": corrs}
+    )
 
 
 def spike_count_correlation_between_groups(
     df: pd.core.frame.DataFrame,
     fs: int,
     neuron_col: str = "neuron_id",
-    group_col: str = "",
+    group_col: str = "group",
     spiketimes_col: str = "spiketimes",
     min_firing_rate: float = None,
     t_start: float = None,
@@ -92,35 +95,43 @@ def spike_count_correlation_between_groups(
         pearson correlation coefficients and group membership.
         Columns: {'group_1', 'group_2', 'neuron_1', 'neuron_2', 'pearson_r'}
     """
-    # multiprocessing
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
         t_stop = np.max(df[spiketimes_col])
     groups = df[group_col].unique()
+    frames: list = []
     for group_1, group_2 in combinations(groups, r=2):
         neurons_group_1 = df.loc[df[group_col] == group_1][neuron_col].unique()
         neuron_group_2 = df.loc[df[group_col] == group_2][neuron_col].unique()
-        frames = []
-        for comb in product(neurons_group_1, neuron_group_2):
-            frames.append(
-                pd.Series(
-                    {
-                        "group_1": group_1,
-                        "group_2": group_2,
-                        "neuron_1": comb[0],
-                        "neuron_2": comb[1],
-                        "pearson_r": spike_count_correlation(
-                            df[df[neuron_col] == comb[0]][spiketimes_col].values,
-                            df[df[neuron_col] == comb[1]][spiketimes_col].values,
-                            fs=fs,
-                            min_firing_rate=min_firing_rate,
-                            t_start=t_start,
-                            t_stop=t_stop,
-                        ),
-                    }
-                )
+
+        neuron_combs = list(product(neurons_group_1, neuron_group_2))
+        args = [
+            [
+                df[df[neuron_col] == neuron_1][spiketimes_col].values,
+                df[df[neuron_col] == neuron_2][spiketimes_col].values,
+                fs,
+                min_firing_rate,
+                t_start,
+                t_stop,
+            ]
+            for neuron_1, neuron_2 in neuron_combs
+        ]
+        with multiprocessing.Pool() as p:
+            corrs = p.starmap(spike_count_correlation, args)
+
+        neurons = [[n1 for n1, n2 in neuron_combs], [n2 for n1, n2 in neuron_combs]]
+        frames.append(
+            pd.DataFrame(
+                {
+                    "group_1": group_1,
+                    "group_2": group_2,
+                    "neuron_1": neurons[0],
+                    "neuron_2": neurons[1],
+                    "pearson_r": corrs,
+                }
             )
+        )
     return pd.concat(frames, axis=1).transpose()
 
 
@@ -161,32 +172,40 @@ def spike_count_correlation_df_test(
         pearson correlation coefficients and p vaue.
         Columns: {'neuron_1', 'neuron_2', 'r', 'p'}
     """
-    # multiprocessing
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
         t_stop = np.max(df[spiketimes_col])
-    frames: list = []
     neurons = df[neuron_col].unique()
-    for comb in combinations(neurons, r=2):
-        if verbose:
-            print(f"Correlating: {comb}")
-        r, p = spike_count_correlation_test(
-            df[df[neuron_col] == comb[0]][spiketimes_col].values,
-            df[df[neuron_col] == comb[1]][spiketimes_col].values,
-            fs=fs,
-            min_firing_rate=min_firing_rate,
-            t_start=t_start,
-            t_stop=t_stop,
-            n_boot=n_boot,
-            tail=tail,
-        )
-        frames.append(
-            pd.Series(
-                {"neuron_1": comb[0], "neuron_2": comb[1], "pearson_r": r, "p": p}
-            )
-        )
-    return pd.concat(frames, axis=1).transpose()
+
+    neuron_combs = list(combinations(neurons, r=2))
+    args = [
+        [
+            df[df[neuron_col] == neuron_1][spiketimes_col].values,
+            df[df[neuron_col] == neuron_2][spiketimes_col].values,
+            fs,
+            n_boot,
+            min_firing_rate,
+            t_start,
+            t_stop,
+            tail,
+        ]
+        for neuron_1, neuron_2 in neuron_combs
+    ]
+
+    with multiprocessing.Pool() as p:
+        corrs = p.starmap(spike_count_correlation_test, args)
+
+    corrs = [[r for r, p in corrs], [p for r, p in corrs]]
+    neurons = [[n1 for n1, n2 in neuron_combs], [n2 for n1, n2 in neuron_combs]]
+    return pd.DataFrame(
+        {
+            "neuron_1": neurons[0],
+            "neuron_2": neurons[1],
+            "pearson_r": corrs[0],
+            "p": corrs[1],
+        }
+    )
 
 
 def spike_count_correlation_between_groups_test(
@@ -229,40 +248,44 @@ def spike_count_correlation_between_groups_test(
         pearson correlation coefficients and group membership.
         Columns: {'group_1', 'group_2', 'neuron_1', 'neuron_2', 'pearson_r'}
     """
-    # multiprocessing
     if t_start is None:
         t_start = np.min(df[spiketimes_col])
     if t_stop is None:
         t_stop = np.max(df[spiketimes_col])
+    frames: list = []
     groups = df[group_col].unique()
     for group_1, group_2 in combinations(groups, r=2):
         neurons_group_1 = df.loc[df[group_col] == group_1][neuron_col].unique()
         neuron_group_2 = df.loc[df[group_col] == group_2][neuron_col].unique()
-        frames = []
-        for comb in product(neurons_group_1, neuron_group_2):
-            if verbose:
-                print(f"Correlating: {comb}")
-            r, p = spike_count_correlation_test(
-                df[df[neuron_col] == comb[0]][spiketimes_col].values,
-                df[df[neuron_col] == comb[1]][spiketimes_col].values,
-                fs=fs,
-                min_firing_rate=min_firing_rate,
-                t_start=t_start,
-                t_stop=t_stop,
-                n_boot=n_boot,
-                tail=tail,
+
+        neuron_combs = list(product(neurons_group_1, neuron_group_2))
+        args = [
+            [
+                df[df[neuron_col] == neuron_1][spiketimes_col].values,
+                df[df[neuron_col] == neuron_2][spiketimes_col].values,
+                fs,
+                n_boot,
+                min_firing_rate,
+                t_start,
+                t_stop,
+                tail,
+            ]
+            for neuron_1, neuron_2 in neuron_combs
+        ]
+        with multiprocessing.Pool() as p:
+            corrs = p.starmap(spike_count_correlation_test, args)
+
+        neurons = [[n1 for n1, n2 in neuron_combs], [n2 for n1, n2 in neuron_combs]]
+        frames.append(
+            pd.DataFrame(
+                {
+                    "group_1": group_1,
+                    "group_2": group_2,
+                    "neuron_1": neurons[0],
+                    "neuron_2": neurons[1],
+                    "pearson_r": corrs,
+                }
             )
-            frames.append(
-                pd.Series(
-                    {
-                        "group_1": group_1,
-                        "group_2": group_2,
-                        "neuron_1": comb[0],
-                        "neuron_2": comb[1],
-                        "pearson_r": r,
-                        "p": p,
-                    }
-                )
-            )
+        )
     return pd.concat(frames, axis=1).transpose()
 
