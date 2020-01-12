@@ -21,11 +21,11 @@ def auto_corr(
     _, bins = binned_spiketrain(spiketrain, fs=fs)
     bins = pd.Series(bins)
     time_bins = np.array([i for i in range(-num_lags, num_lags) if i != 0])
-    auto_corr = np.array([bins.autocorr(i) for i in time_bins])
+    auto_corr_ = np.array([bins.autocorr(i) for i in time_bins])
     if not as_df:
-        return time_bins, auto_corr
+        return time_bins, auto_corr_
     else:
-        return pd.DataFrame({"lag": time_bins, "auto_correlation": auto_corr})
+        return pd.DataFrame({"lag": time_bins, "auto_correlation": auto_corr_})
 
 
 def cross_corr(
