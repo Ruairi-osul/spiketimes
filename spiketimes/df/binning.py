@@ -20,5 +20,5 @@ def bin_df(
     if return_values:
         df[bin_val_name] = bins[df[bin_idx_name].tolist()]
     if not return_idx:
-        df.drop("bin_idx", axis=1, inplace=True)
+        df.drop(bin_idx_name, axis=1, inplace=True)
     return df

@@ -24,3 +24,10 @@ def binned_spiketrain(spiketrain, fs, t_stop=None, t_start=None, as_df=False):
 
 def bin_to_bool(binned_arr: np.ndarray):
     return np.where(binned_arr != 0, 1, 0)
+
+
+def which_bin(spiketrain, bin_edges):
+    idx = np.digitize(spiketrain, bin_edges) - 1
+    bin_values = bin_edges[idx.tolist()]
+    return idx, bin_values
+
