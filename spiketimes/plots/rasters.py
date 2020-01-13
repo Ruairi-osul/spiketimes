@@ -24,8 +24,8 @@ def raster_single_neuron(spike_times, ax=None, y_data_ind=1, **kwargs):
 
 def raster_multiple_neurons(spike_times, ax=None, t_min=None, t_max=None, **kwargs):
     """Construct a raster plot of multiple nuerons.
-    
-    spike_times: a list of numpy arrays containing the timings of spiking events"""
+    spike_times: a list of numpy arrays containing the timings of spiking events
+    """
 
     try:
         (_ for _ in spike_times[0])  # iterable check
