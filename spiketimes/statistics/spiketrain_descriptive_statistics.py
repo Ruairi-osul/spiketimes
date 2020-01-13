@@ -28,6 +28,6 @@ def cv_isi(spiketrain: np.ndarray):
     Params: 
         spiketrain: an array of spike times
     reutrns:
-        the coeffient of variation (np.float64)
+        the coeffient of variation
     """
     return cov(inter_spike_intervals(spiketrain))
