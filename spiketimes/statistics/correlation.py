@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
-from itertools import combinations
 from ..alignment import binned_spiketrain
 from ..statistics import ifr
 from ..surrogates import shuffled_isi_spiketrains
