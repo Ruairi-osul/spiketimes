@@ -4,7 +4,7 @@ from scipy import stats
 from itertools import combinations
 from ..alignment import binned_spiketrain
 from ..statistics import ifr
-from ..simulate import shuffled_isi_spiketrains
+from ..surrogates import shuffled_isi_spiketrains
 from .utils import _random_combination
 
 
