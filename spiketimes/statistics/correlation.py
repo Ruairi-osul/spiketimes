@@ -32,7 +32,6 @@ def spike_count_correlation_test(
                          firing rate of the two spiketrains exeedes this value
         t_start: The startpoint of the first bin. Defaults to the first spike in the two trains
         t_stop: The maximum time for a time bin. Defaults to the last spike in the two trians
-    
     returns:
         pearson's r
         p value
@@ -88,7 +87,6 @@ def spike_count_correlation(
                          firing rate of the two spiketrains exeedes this value
         t_start: The startpoint of the first bin. Defaults to the first spike in the two trains
         t_stop: The maximum time for a time bin. Defaults to the last spike in the two trians
-    
     returns:
         pearson's r 
     """
