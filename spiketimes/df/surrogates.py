@@ -1,5 +1,5 @@
 import pandas as pd
-from ..simulate import shuffled_isi_spiketrains
+from ..surrogates import shuffled_isi_spiketrains
 from .conversion import list_to_df
 
 

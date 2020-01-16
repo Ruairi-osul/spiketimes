@@ -1,10 +1,18 @@
 import numpy as np
 import pandas as pd
+from scipy import signal
 from ..alignment import binned_spiketrain
+from ..surrogates import jitter_spiketrains
+from .utils import _random_combination
 
 
 def auto_corr(
-    spiketrain: np.ndarray, fs: int = 100, num_lags: int = 100, as_df: bool = False
+    spiketrain: np.ndarray,
+    bin_window: float = 0.01,
+    num_lags: int = 100,
+    as_df: bool = False,
+    t_start: float = None,
+    t_stop: float = None,
 ):
     """
     Given a spike train and a sampling rate, discretises the spiketrain
@@ -14,26 +22,49 @@ def auto_corr(
     params:
         spiketrain: a numpy array or pandas.Series containing 
                     timepoints of spiketimes
-        fs: the sampling rate used to bin the spiketrain
+        bin_window: the size of the bins used to discretise the spiketrain
         num_lags: the number of time bins to shift and correlate
+        as_df: whether to return results as pandas DataFrame
+        t_start: if specified, provides the left edge of the first time bin used
+                 to discretise the spiketrain
+        t_stop: if specified, provides the right edge of the last time bin used
+                 to discretise the spiketrain
     """
 
-    _, bins = binned_spiketrain(spiketrain, fs=fs)
-    bins = pd.Series(bins)
-    time_bins = np.array([i for i in range(-num_lags, num_lags) if i != 0])
-    auto_corr_ = np.array([bins.autocorr(i) for i in time_bins])
+    # get lag labels
+    time_span = bin_window * num_lags
+    time_bins = np.arange(-time_span, time_span + bin_window, bin_window)
+    time_bins = np.delete(time_bins, len(time_bins) // 2)  # delete 0 element
+
+    # discretise the spiketrain
+    if t_start is None:
+        t_start = np.nanmin(spiketrain)
+    if t_stop is None:
+        t_stop = np.nanmax(spiketrain)
+    _, binned_spiketrain_ = binned_spiketrain(
+        spiketrain, fs=(1 / bin_window), t_start=t_start, t_stop=t_stop
+    )
+
+    # get autocorrelation values
+    vals = signal.correlate(binned_spiketrain_, binned_spiketrain_, mode="same")
+    zero_idx = len(vals) // 2
+    vals = vals[(zero_idx - num_lags) : (zero_idx + num_lags + 1)]
+    vals = np.delete(vals, len(vals) // 2)  # delete 0 element
+
     if not as_df:
-        return time_bins, auto_corr_
+        return time_bins, vals
     else:
-        return pd.DataFrame({"lag": time_bins, "auto_correlation": auto_corr_})
+        return pd.DataFrame({"time_sec": time_bins, "autocorrelation": vals})
 
 
 def cross_corr(
     spiketrain_1: np.ndarray,
     spiketrain_2: np.ndarray,
-    fs: int = 100,
+    bin_window: float = 0.01,
     num_lags: int = 100,
     as_df: bool = False,
+    t_start: float = None,
+    t_stop: float = None,
 ):
     """
     Given two spiketrains and a sampling rate, discretises the spiketrains
@@ -48,23 +79,144 @@ def cross_corr(
                       timepoints of spiketimes
         spiketrain_2: a numpy array or pandas.Series containing 
                       timepoints of spiketimes
-        fs: the sampling rate used to bin the spiketrain
+        bin_window: the size of the bins used to discretise the spiketrain
         num_lags: the number of time bins to shift and correlate
         as_df: whether to return results as pandas DataFrame
+        t_start: if specified, provides the left edge of the first time bin used
+                 to discretise the spiketrain
+        t_stop: if specified, provides the right edge of the last time bin used
+                 to discretise the spiketrain
     """
-    t_start = np.min([np.min(spiketrain_1), np.min(spiketrain_2)])
-    t_stop = np.max([np.max(spiketrain_1), np.max(spiketrain_2)])
 
-    _, bins_1 = binned_spiketrain(spiketrain_1, fs=fs, t_start=t_start, t_stop=t_stop)
-    _, bins_2 = binned_spiketrain(spiketrain_2, fs=fs, t_start=t_start, t_stop=t_stop)
+    # get lag labels
+    time_span = bin_window * num_lags
+    time_bins = np.arange(-time_span, time_span + bin_window, bin_window)
+    time_bins = np.delete(time_bins, len(time_bins) // 2)  # delete 0 element
 
-    bins_1 = pd.Series(bins_1)
-    bins_2 = pd.Series(bins_2)
+    # discretise the spiketrain
+    if t_start is None:
+        t_start = np.nanmin([np.nanmin(spiketrain_1), np.nanmin(spiketrain_2)])
+    if t_stop is None:
+        t_stop = np.nanmax([np.nanmax(spiketrain_1), np.nanmax(spiketrain_2)])
 
-    time_bins = np.array([i for i in range(-num_lags, num_lags) if i != 0])
+    _, bins_1 = binned_spiketrain(
+        spiketrain_1, fs=(1 / bin_window), t_start=t_start, t_stop=t_stop
+    )
+    _, bins_2 = binned_spiketrain(
+        spiketrain_2, fs=(1 / bin_window), t_start=t_start, t_stop=t_stop
+    )
 
-    cross_corr_ = np.array([bins_1.corr(bins_2.shift(i)) for i in time_bins])
+    # get crosscorrelation values
+    vals = signal.correlate(bins_1, bins_2, mode="same")
+    zero_idx = len(vals) // 2
+    vals = vals[(zero_idx - num_lags) : (zero_idx + num_lags + 1)]
+    vals = np.delete(vals, len(vals) // 2)  # delete 0 element
+
     if not as_df:
-        return time_bins, cross_corr_
+        return time_bins, vals
     else:
-        return pd.DataFrame({"lag": time_bins, "cross_correlation": cross_corr_})
+        return pd.DataFrame({"time_sec": time_bins, "crosscorrelation": vals})
+
+
+def cross_corr_test(
+    spiketrain_1: np.ndarray,
+    spiketrain_2: np.ndarray,
+    bin_window: float = 0.01,
+    jiter_sampling_interval: float = 5,
+    n_boot: int = 500,
+    num_lags: int = 100,
+    as_df: bool = False,
+    t_start: float = None,
+    t_stop: float = None,
+    tail: str = "two_tailed",
+):
+    """
+    WARNING: jitter spiketrains broken so do not use yet.
+    """
+
+    if t_start is None:
+        t_start = np.nanmin([np.nanmin(spiketrain_1), np.nanmin(spiketrain_2)])
+    if t_stop is None:
+        t_stop = np.nanmax([np.nanmax(spiketrain_1), np.nanmax(spiketrain_2)])
+
+    # get observed
+    time_bins, observed_cc = cross_corr(
+        spiketrain_1,
+        spiketrain_2,
+        bin_window=bin_window,
+        num_lags=num_lags,
+        as_df=False,
+        t_start=t_start,
+        t_stop=t_stop,
+    )
+
+    # get surrogates
+    n_surrogates = n_boot // 3
+    st_1_surrogates = jitter_spiketrains(
+        spiketrain_1,
+        sampling_interval=jiter_sampling_interval,
+        t_start=t_start,
+        t_stop=t_stop,
+        n=n_surrogates,
+    )
+    st_2_surrogates = jitter_spiketrains(
+        spiketrain_2,
+        sampling_interval=jiter_sampling_interval,
+        t_start=t_start,
+        t_stop=t_stop,
+        n=n_surrogates,
+    )
+    surrogate_indexes = list(range(n_surrogates))
+
+    # generate replicates
+    replicates = []
+    for _ in range(n_boot):
+        surrogate_pair = _random_combination(surrogate_indexes, r=2)
+        neuron_1, neuron_2 = (
+            st_1_surrogates[surrogate_pair[0]],
+            st_2_surrogates[surrogate_pair[1]],
+        )
+        replicates.append(
+            cross_corr(
+                neuron_1,
+                neuron_2,
+                bin_window=bin_window,
+                num_lags=num_lags,
+                as_df=False,
+                t_start=t_start,
+                t_stop=t_stop,
+            )[1]
+        )
+    replicates = np.array(replicates)
+
+    p = []
+    if tail == "two_tailed":
+        replicates = np.absolute(replicates)
+        for i, observed in enumerate(observed_cc):
+            reps = replicates[:, i]
+            if observed < np.nanmean(reps):
+                p.append(np.nanmean(reps < observed))
+            else:
+                p.append(np.nanmean(reps > observed))
+    elif tail == "upper":
+        p = [
+            np.nanmean(reps[:, i] > observed for i, observed in enumerate(observed_cc))
+        ]
+    elif tail == "lower":
+        p = [
+            np.nanmean(reps[:, i] < observed for i, observed in enumerate(observed_cc))
+        ]
+    else:
+        raise ValueError(
+            "Could not parse tail value. Select one of"
+            "{'Two tailed', 'lower', 'upper'} - 'upper' if hypothesising a positive r"
+        )
+    p = np.array(p)
+
+    if not as_df:
+        return time_bins, observed_cc, p
+    else:
+        return pd.DataFrame(
+            {"time_sec": time_bins, "crosscorrelation": observed_cc, "p": p}
+        )
+
