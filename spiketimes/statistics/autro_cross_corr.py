@@ -122,7 +122,7 @@ def cross_corr_test(
     spiketrain_1: np.ndarray,
     spiketrain_2: np.ndarray,
     bin_window: float = 0.01,
-    jiter_sampling_interval: float = 5,
+    jitter_window_size: float = 1,
     n_boot: int = 500,
     num_lags: int = 100,
     as_df: bool = False,
@@ -154,14 +154,14 @@ def cross_corr_test(
     n_surrogates = n_boot // 3
     st_1_surrogates = jitter_spiketrains(
         spiketrain_1,
-        sampling_interval=jiter_sampling_interval,
+        jitter_window_size=jitter_window_size,
         t_start=t_start,
         t_stop=t_stop,
         n=n_surrogates,
     )
     st_2_surrogates = jitter_spiketrains(
         spiketrain_2,
-        sampling_interval=jiter_sampling_interval,
+        jitter_window_size=jitter_window_size,
         t_start=t_start,
         t_stop=t_stop,
         n=n_surrogates,
@@ -214,7 +214,7 @@ def cross_corr_test(
     p = np.array(p)
 
     if not as_df:
-        return time_bins, observed_cc, p
+        return time_bins, observed_cc, p, replicates
     else:
         return pd.DataFrame(
             {"time_sec": time_bins, "crosscorrelation": observed_cc, "p": p}

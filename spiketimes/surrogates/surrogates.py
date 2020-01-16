@@ -1,5 +1,5 @@
 from .utils import _isi
-from ..alignment import which_bin, align_to
+from ..alignment import which_bin, align_to, binned_spiketrain
 import numpy as np
 from numpy.random import random
 
@@ -35,7 +35,54 @@ def shuffled_isi_spiketrains(spiketrain: np.ndarray, n: int = 1):
     return [shuffled_isi_spiketrain(spiketrain) for _ in range(n)]
 
 
+def jitter_spiketrain(
+    spiketrain: np.ndarray,
+    jitter_window_size: float,
+    t_start: float = None,
+    t_stop: float = None,
+):
+    if t_start is None:
+        t_start = spiketrain[0]
+    if t_stop is None:
+        t_stop = spiketrain[-1]
+    edges, values = binned_spiketrain(
+        spiketrain, fs=(1 / jitter_window_size), t_start=t_start, t_stop=t_stop
+    )
+    jittered = np.sort(
+        np.concatenate(
+            [
+                edge + (random(val) * jitter_window_size)
+                for edge, val in zip(edges, values)
+                if val != 0
+            ]
+        )
+    )
+    return jittered[jittered < t_stop]
+
+
 def jitter_spiketrains(
+    spiketrain: np.ndarray,
+    n: int,
+    jitter_window_size: float,
+    t_start: float = None,
+    t_stop: float = None,
+):
+    if t_start is None:
+        t_start = spiketrain[0]
+    if t_stop is None:
+        t_stop = spiketrain[-1]
+    return [
+        jitter_spiketrain(
+            spiketrain,
+            jitter_window_size=jitter_window_size,
+            t_start=t_start,
+            t_stop=t_stop,
+        )
+        for _ in range(n)
+    ]
+
+
+def jitter_spiketrains_old(
     spiketrain: np.ndarray,
     sampling_interval: float,
     n: int,
