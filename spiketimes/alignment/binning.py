@@ -32,5 +32,5 @@ def which_bin(spiketrain, bin_edges):
     return idx, bin_values
 
 
-def spike_count_around_event(spiketrain, binsize):
+def spike_count_around_event(spiketrain, event, binsize):
     pass

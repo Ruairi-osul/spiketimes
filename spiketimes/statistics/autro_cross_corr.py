@@ -65,6 +65,7 @@ def cross_corr(
     as_df: bool = False,
     t_start: float = None,
     t_stop: float = None,
+    delete_0_lag: bool = False,
 ):
     """
     Given two spiketrains and a sampling rate, discretises the spiketrains
@@ -91,7 +92,6 @@ def cross_corr(
     # get lag labels
     time_span = bin_window * num_lags
     time_bins = np.arange(-time_span, time_span + bin_window, bin_window)
-    time_bins = np.delete(time_bins, len(time_bins) // 2)  # delete 0 element
 
     # discretise the spiketrain
     if t_start is None:
@@ -110,7 +110,10 @@ def cross_corr(
     vals = signal.correlate(bins_1, bins_2, mode="same")
     zero_idx = len(vals) // 2
     vals = vals[(zero_idx - num_lags) : (zero_idx + num_lags + 1)]
-    vals = np.delete(vals, len(vals) // 2)  # delete 0 element
+
+    if delete_0_lag:
+        time_bins = np.delete(time_bins, len(time_bins) // 2)
+        vals = np.delete(vals, len(vals) // 2)
 
     if not as_df:
         return time_bins, vals
