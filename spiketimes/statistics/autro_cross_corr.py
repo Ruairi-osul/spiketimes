@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy import signal
+import multiprocessing
 from ..alignment import binned_spiketrain
 from ..surrogates import jitter_spiketrains
 from .utils import _random_combination, p_adjust
