@@ -2,36 +2,50 @@ import matplotlib.pyplot as plt
 import numpy as np
 from spiketimes.alignment import align_to, negative_align
 from matplotlib.ticker import MaxNLocator
+from ..alignment import align_around
 
 
-def psth(spike_times, events, t_before=0.2, max_latency=2, ax=None, **kwargs):
+def psth(
+    spiketimes: np.ndarray,
+    events: np.ndarray,
+    binwidth: float = 0.01,
+    t_before: float = 0.2,
+    max_latency: float = 2,
+    ax=None,
+    hist_kwargs: dict = None,
+):
     """Contruct a peristimulus time histogram of spike_times with respect to events
     t_before defines the time before time 0 (when the event occured) to include 
     in the histogram"""
     # TODO implement binwidth functionality
-    # TODO implement maximum latencies
+
     if ax is None:
         _, ax = plt.subplots()
-    postive_latencies = align_to(spike_times, events, no_beyond=True)
-    negative_latencies = negative_align(spike_times, events, no_before=True)
-    latencies = np.concatenate(
-        (
-            negative_latencies[np.logical_not(np.isnan(negative_latencies))],
-            postive_latencies[np.logical_not(np.isnan(postive_latencies))],
-        )
-    )
-    latencies = latencies[(latencies >= -t_before) & (latencies <= max_latency)]
 
-    ax.hist(latencies, **kwargs)
+    latencies = align_around(spiketimes, events, t_before, max_latency)
+    bins = np.arange(np.min(latencies), np.max(latencies), binwidth)
+
+    if hist_kwargs is None:
+        hist_kwargs = {}
+    ax.hist(latencies, bins=bins, **hist_kwargs)
+    ax = add_event_vlines(ax, 0)
     return ax
 
 
 def add_event_vlines(
-    ax, events, linestyle="--", color="grey", t_min=None, t_max=None, **kwargs
+    ax,
+    events,
+    linestyle: str = "--",
+    color: str = "grey",
+    t_min: float = None,
+    t_max: float = None,
+    vline_kwargs: dict = None,
 ):
     """Add vertical lines at the point(s) specified in events
     t_min and t_max define minimum and maximum timepoints for events i.e. no
     events outside these limits will be plotted"""
+    if vline_kwargs is None:
+        vline_kwargs = {}
     try:
         _ = (x for x in events)
     except TypeError:
@@ -41,5 +55,5 @@ def add_event_vlines(
     if t_max:
         events = np.array(list(filter(lambda x: x < t_max, events)))
     for event in events:
-        ax.axvline(event, color=color, linestyle=linestyle, **kwargs)
+        ax.axvline(event, color=color, linestyle=linestyle, **vline_kwargs)
     return ax

@@ -94,6 +94,40 @@ def negative_align(to_be_aligned, to_align_to, no_before=False):
     return aligned_data
 
 
+def align_around(
+    to_be_aligned: np.ndarray,
+    to_align_to: np.ndarray,
+    t_before: float = 0.2,
+    max_latency: float = 2,
+):
+    """
+    Aligns one array to another. Elements will be negativly aligned if they
+    occur at or less than t_before
+
+    params:
+        to_be_aligned: an np.ndarray containing data to be aligned
+        to_align_to: a np.ndarray containing data to align to
+        t_before: events occuring t_before or less before an event will be
+                  negatively aligned to that event
+        max_latency: latencies above this threshold will be returned as nan
+
+    """
+
+    postive_latencies = align_to(to_be_aligned, to_align_to, no_beyond=True)
+    negative_latencies = negative_align(to_be_aligned, to_align_to, no_before=True)
+
+    latencies = np.concatenate(
+        (
+            negative_latencies[np.logical_not(np.isnan(negative_latencies))],
+            postive_latencies[np.logical_not(np.isnan(postive_latencies))],
+        )
+    )
+    latencies = latencies[(latencies >= -t_before) & (latencies <= max_latency)]
+    if max_latency:
+        latencies[latencies > max_latency] = np.nan
+    return latencies
+
+
 def nearest_smaller_event(spike_times, events, returns="index"):
     """Given an array of spiketimes and events array, calculates
     the index or value of the closest smaller event

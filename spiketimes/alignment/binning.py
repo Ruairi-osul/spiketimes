@@ -22,6 +22,11 @@ def binned_spiketrain(spiketrain, fs, t_stop=None, t_start=None, as_df=False):
         return edges[1:], values
 
 
+def binned_spiketrain_bins_provided(spiketrain, bins):
+    values, _ = np.histogram(spiketrain, bins=bins)
+    return values
+
+
 def bin_to_bool(binned_arr: np.ndarray):
     return np.where(binned_arr != 0, 1, 0)
 
@@ -32,5 +37,10 @@ def which_bin(spiketrain, bin_edges):
     return idx, bin_values
 
 
-def spike_count_around_event(spiketrain, event, binsize):
-    pass
+def spike_count_around_event(
+    spiketrain: np.ndarray, events: np.ndarray, binsize: float
+):
+    bins = np.repeat(events, 2).astype(np.float64)
+    bins[1::2] += binsize
+    spikecounts = binned_spiketrain_bins_provided(spiketrain, bins)
+    return spikecounts
