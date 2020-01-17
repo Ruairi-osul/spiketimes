@@ -31,3 +31,6 @@ def which_bin(spiketrain, bin_edges):
     bin_values = bin_edges[idx.tolist()]
     return idx, bin_values
 
+
+def spike_count_around_event(spiketrain, binsize):
+    pass

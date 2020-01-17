@@ -25,4 +25,4 @@ from .correlate import (
     spike_count_correlation_between_groups,
     spike_count_correlation_between_groups_test,
 )
-from .autocorrelation import auto_corr_df, cross_corr_df
+from .autocorrelation import auto_corr_df, cross_corr_df, cross_corr_df_test

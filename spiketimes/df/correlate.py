@@ -3,6 +3,7 @@ import numpy as np
 import multiprocessing
 from itertools import combinations, product
 from ..statistics import spike_count_correlation, spike_count_correlation_test
+from ..statistics.utils import p_adjust
 
 
 def spike_count_correlation_df(
@@ -146,6 +147,8 @@ def spike_count_correlation_df_test(
     t_stop: float = None,
     tail: str = "two_tailed",
     verbose: bool = False,
+    adjust_p: bool = True,
+    p_adjust_method: str = "Benjamini-Hochberg",
 ):
     """
     Given a df containing one row per spike time and neuron_id and group_id labels
@@ -198,7 +201,7 @@ def spike_count_correlation_df_test(
 
     corrs = [[r for r, p in corrs], [p for r, p in corrs]]
     neurons = [[n1 for n1, n2 in neuron_combs], [n2 for n1, n2 in neuron_combs]]
-    return pd.DataFrame(
+    df = pd.DataFrame(
         {
             "neuron_1": neurons[0],
             "neuron_2": neurons[1],
@@ -206,6 +209,10 @@ def spike_count_correlation_df_test(
             "p": corrs[1],
         }
     )
+    if adjust_p:
+        df["p"] = p_adjust(df["p"].values, method=p_adjust_method)
+
+    return df
 
 
 def spike_count_correlation_between_groups_test(

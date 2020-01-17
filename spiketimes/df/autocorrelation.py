@@ -2,15 +2,16 @@ import pandas as pd
 import numpy as np
 from itertools import combinations
 import multiprocessing
-from ..statistics import auto_corr, cross_corr
+from ..statistics import auto_corr, cross_corr, cross_corr_test
 from .conversion import spikes_df_to_binned_df
+from ..statistics.utils import p_adjust
 
 
 def auto_corr_df(
     df: pd.core.frame.DataFrame,
     neuron_col: str = "neuron_id",
     spiketimes_col: str = "spiketimes",
-    fs: int = 100,
+    bin_window: int = 0.01,
     num_lags: int = 100,
 ):
     """
@@ -28,7 +29,9 @@ def auto_corr_df(
     return (
         df.groupby(neuron_col)
         .apply(
-            lambda x: auto_corr(x[spiketimes_col], fs=fs, num_lags=num_lags, as_df=True)
+            lambda x: auto_corr(
+                x[spiketimes_col], bin_window=bin_window, num_lags=num_lags, as_df=True
+            )
         )
         .reset_index()
         .drop("level_1", axis=1)
@@ -39,8 +42,10 @@ def cross_corr_df(
     df: pd.core.frame.DataFrame,
     neuron_col: str = "neuron_id",
     spiketimes_col: str = "spiketimes",
-    fs: int = 100,
+    bin_window: float = 0.01,
     num_lags: int = 100,
+    t_start: float = None,
+    t_stop: float = None,
 ):
     """
     Given a dataframe of spiketimes identified by a neuron column, 
@@ -54,7 +59,6 @@ def cross_corr_df(
                   shift the correlation
     
     """
-    # multiprocessing
     neurons = df[neuron_col].unique()
 
     neuron_combs = list(combinations(neurons, r=2))
@@ -62,9 +66,11 @@ def cross_corr_df(
         [
             df[df[neuron_col] == neuron_1][spiketimes_col].values,
             df[df[neuron_col] == neuron_2][spiketimes_col].values,
-            fs,
+            bin_window,
             num_lags,
             True,
+            t_start,
+            t_stop,
         ]
         for neuron_1, neuron_2 in neuron_combs
     ]
@@ -77,22 +83,65 @@ def cross_corr_df(
         r["neuron_2"] = neuron_comb[1]
     return pd.concat(res, axis=0)
 
-    # frames: list = []
-    # for neuron_1, neuron_2 in combinations(neurons, r=2):
-    #     time_bins, cross_corr_ = cross_corr(
-    #         df[df[neuron_col] == neuron_1][spiketimes_col],
-    #         df[df[neuron_col] == neuron_1][spiketimes_col],
-    #         fs=fs,
-    #         num_lags=num_lags,
-    #     )
-    #     frames.append(
-    #         pd.DataFrame(
-    #             {
-    #                 "neuron_1": neuron_1,
-    #                 "neuron_2": neuron_2,
-    #                 "time_bin": time_bins,
-    #                 "cross_correlation": cross_corr_,
-    #             }
-    #         )
-    #     )
-    # return pd.concat(frames, axis=0)
+
+def cross_corr_df_test(
+    df: pd.core.frame.DataFrame,
+    neuron_col: str = "neuron_id",
+    spiketimes_col: str = "spiketimes",
+    n_boot: int = 4000,
+    tail: str = "two_tailed",
+    jitter_window_size: float = 0.4,
+    bin_window: float = 0.01,
+    num_lags: int = 100,
+    t_start: int = None,
+    t_stop: int = None,
+    adjust_p: bool = True,
+    p_adjust_method: str = "Benjamini-Hochberg",
+):
+    """
+    Given a dataframe of spiketimes identified by a neuron column, 
+    calculates the cross correlation function between each pair of neurons.
+    Also test significance of each time lag using a bootstrap approach inwhich
+    crosscorrelation at each lag is compared to cross correlation of jitter
+    surrogate spiketrains. 
+
+    params:
+        df: dataframe containing the data
+        neuron_col: label of the column containing neuron ids
+        bin_window: size of bins in seconds used to discretise the spiketrain
+        num_lags: the number of time bins forwards and backwards to 
+                  shift the correlation
+    """
+    neurons = df[neuron_col].unique()
+    neuron_combs = list(combinations(neurons, r=2))
+    args = [
+        [
+            df[df[neuron_col] == neuron_1][spiketimes_col].values,
+            df[df[neuron_col] == neuron_2][spiketimes_col].values,
+            bin_window,
+            jitter_window_size,
+            n_boot,
+            num_lags,
+            True,
+            t_start,
+            t_stop,
+            tail,
+            False,
+            None,
+        ]
+        for neuron_1, neuron_2 in neuron_combs
+    ]
+
+    with multiprocessing.Pool() as p:
+        res = p.starmap(cross_corr_test, args)
+
+    for neuron_comb, r in zip(neuron_combs, res):
+        r["neuron_1"] = neuron_comb[0]
+        r["neuron_2"] = neuron_comb[1]
+    df = pd.concat(res, axis=0)
+
+    if adjust_p:
+        df["p"] = p_adjust(df["p"].values, method=p_adjust_method)
+
+    return df
+
