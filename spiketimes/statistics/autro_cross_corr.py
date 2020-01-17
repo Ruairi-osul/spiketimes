@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import signal
 from ..alignment import binned_spiketrain
 from ..surrogates import jitter_spiketrains
-from .utils import _random_combination
+from .utils import _random_combination, p_adjust
 
 
 def auto_corr(
@@ -129,6 +129,8 @@ def cross_corr_test(
     t_start: float = None,
     t_stop: float = None,
     tail: str = "two_tailed",
+    adjust_p: bool = True,
+    p_adjust_method: str = "Benjamini-Hochberg",
 ):
     """
     WARNING: jitter spiketrains broken so do not use yet.
@@ -212,11 +214,15 @@ def cross_corr_test(
             "{'Two tailed', 'lower', 'upper'} - 'upper' if hypothesising a positive r"
         )
     p = np.array(p)
+    if tail == "two_tailed":
+        p = p * 2
+
+    if adjust_p:
+        p = p_adjust(p, method=p_adjust_method)
 
     if not as_df:
-        return time_bins, observed_cc, p, replicates
+        return time_bins, observed_cc, p
     else:
         return pd.DataFrame(
             {"time_sec": time_bins, "crosscorrelation": observed_cc, "p": p}
         )
-

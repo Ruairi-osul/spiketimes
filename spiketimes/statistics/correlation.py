@@ -51,7 +51,7 @@ def spike_count_correlation_test(
     )
     if tail == "two_tailed":
         replicates = np.absolute(replicates)
-        p = np.nanmean(replicates >= np.absolute(r))
+        p = np.nanmean(replicates >= np.absolute(r)) * 2
     elif tail == "upper":
         p = np.nanmean(replicates >= p)
     elif tail == "lower":
