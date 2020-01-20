@@ -21,6 +21,14 @@ def cov(isi: np.ndarray, axis: int = 0):
     return variation(isi, axis=axis)
 
 
+def cv2(isi: np.ndarray):
+    return 2 * np.mean(np.absolute(np.diff(isi)) / (isi[:-1] + isi[1:]))
+
+
+def cv2_isi(spiketrain: np.ndarray):
+    return cv2(inter_spike_intervals(spiketrain))
+
+
 def cv_isi(spiketrain: np.ndarray):
     """
     given an array of spike times, calculates the coefficient of 

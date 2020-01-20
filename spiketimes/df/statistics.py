@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from ..statistics import cv_isi
+from ..statistics import cv_isi, cv2_isi
 
 
 def mean_firing_rate_ifr_by_neuron(
@@ -41,9 +41,22 @@ def cv_isi_by_neuron(
 ):
     return (
         df.groupby(neuron_col)
-        .apply(lambda x: cv_isi(x[spiketimes_col]))
+        .apply(lambda x: cv_isi(x[spiketimes_col].values))
         .reset_index()
         .rename(columns={0: "cv_isi"})
+    )
+
+
+def cv2_by_neuron(
+    df: pd.core.frame.DataFrame,
+    spiketimes_col: str = "spiketimes",
+    neuron_col: str = "neuron_id",
+):
+    return (
+        df.groupby(neuron_col)
+        .apply(lambda x: cv2_isi(x[spiketimes_col].values))
+        .reset_index()
+        .rename(columns={0: "cv2_isi"})
     )
 
 
