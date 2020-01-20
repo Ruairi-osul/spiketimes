@@ -249,7 +249,17 @@ def _find_waveform_peaks(
     after_val = df[
         (df[index_col] < (min_idx + range_around)) & (df[index_col] > (min_idx))
     ][value_col].max()
-    after_idx = df[df[value_col] == after_val][index_col].values[0]
+
+    try:
+        after_idx = df[df[value_col] == after_val][index_col].values[0]
+    except IndexError:
+        return pd.DataFrame(
+            {
+                "peak_name": ["initiation", "minimum", "ahp"],
+                "peak_idx": [np.nan, np.nan, np.nan],
+                "peak_value": [np.nan, np.nan, np.nan],
+            }
+        )
 
     return pd.DataFrame(
         {
