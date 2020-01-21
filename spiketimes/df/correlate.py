@@ -133,7 +133,7 @@ def spike_count_correlation_between_groups(
                 }
             )
         )
-    return pd.concat(frames, axis=1).transpose()
+    return pd.concat(frames, axis=0)
 
 
 def spike_count_correlation_df_test(
@@ -227,6 +227,8 @@ def spike_count_correlation_between_groups_test(
     t_stop: float = None,
     tail: str = "two_tailed",
     verbose: bool = False,
+    adjust_p: bool = True,
+    p_adjust_method: str = "Benjamini-Hochberg",
 ):
     """
     Given a df containing one row per spike time and neuron_id and group_id labels
@@ -283,6 +285,7 @@ def spike_count_correlation_between_groups_test(
             corrs = p.starmap(spike_count_correlation_test, args)
 
         neurons = [[n1 for n1, n2 in neuron_combs], [n2 for n1, n2 in neuron_combs]]
+        corrs = [[r for r, p in corrs], [p for r, p in corrs]]
         frames.append(
             pd.DataFrame(
                 {
@@ -290,9 +293,15 @@ def spike_count_correlation_between_groups_test(
                     "group_2": group_2,
                     "neuron_1": neurons[0],
                     "neuron_2": neurons[1],
-                    "pearson_r": corrs,
+                    "pearson_r": corrs[0],
+                    "p": corrs[1],
                 }
             )
         )
-    return pd.concat(frames, axis=1).transpose()
+    df = pd.concat(frames, axis=0)
+
+    if adjust_p:
+        df["p"] = p_adjust(df["p"].values, method=p_adjust_method)
+
+    return df
 
