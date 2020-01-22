@@ -97,6 +97,7 @@ def cross_corr_df_test(
     t_stop: int = None,
     adjust_p: bool = True,
     p_adjust_method: str = "Benjamini-Hochberg",
+    n_cores: int = None,
 ):
     """
     Given a dataframe of spiketimes identified by a neuron column, 
@@ -132,8 +133,12 @@ def cross_corr_df_test(
         for neuron_1, neuron_2 in neuron_combs
     ]
 
-    with multiprocessing.Pool() as p:
-        res = p.starmap(cross_corr_test, args)
+    if n_cores:
+        with multiprocessing.Pool(n_cores) as p:
+            res = p.starmap(cross_corr_test, args)
+    else:
+        with multiprocessing.Pool() as p:
+            res = p.starmap(cross_corr_test, args)
 
     for neuron_comb, r in zip(neuron_combs, res):
         r["neuron_1"] = neuron_comb[0]
