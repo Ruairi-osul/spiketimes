@@ -26,5 +26,10 @@ from .correlate import (
     spike_count_correlation_between_groups,
     spike_count_correlation_between_groups_test,
 )
-from .autocorrelation import auto_corr_df, cross_corr_df, cross_corr_df_test
+from .autocorrelation import (
+    auto_corr_df,
+    cross_corr_df,
+    cross_corr_df_test,
+    cross_corr_between_groups_test,
+)
 from .population import population_coupling_df, population_coupling_df_by

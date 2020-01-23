@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import signal
 from ..alignment import binned_spiketrain
 from ..surrogates import jitter_spiketrains
-from .utils import _random_combination, p_adjust
+from .utils import _random_combination, p_adjust, ppois
 
 
 def auto_corr(
@@ -125,8 +125,6 @@ def cross_corr_test(
     spiketrain_1: np.ndarray,
     spiketrain_2: np.ndarray,
     bin_window: float = 0.01,
-    jitter_window_size: float = 0.4,
-    n_boot: int = 4000,
     num_lags: int = 100,
     as_df: bool = False,
     t_start: float = None,
@@ -157,7 +155,7 @@ def cross_corr_test(
         t_stop = np.nanmax([np.nanmax(spiketrain_1), np.nanmax(spiketrain_2)])
 
     # get observed
-    time_bins, observed_cc = cross_corr(
+    t, cc = cross_corr(
         spiketrain_1,
         spiketrain_2,
         bin_window=bin_window,
@@ -166,69 +164,10 @@ def cross_corr_test(
         t_start=t_start,
         t_stop=t_stop,
     )
-
-    # get surrogates
-    n_surrogates = n_boot // 3
-    st_1_surrogates = jitter_spiketrains(
-        spiketrain_1,
-        jitter_window_size=jitter_window_size,
-        t_start=t_start,
-        t_stop=t_stop,
-        n=n_surrogates,
-    )
-    st_2_surrogates = jitter_spiketrains(
-        spiketrain_2,
-        jitter_window_size=jitter_window_size,
-        t_start=t_start,
-        t_stop=t_stop,
-        n=n_surrogates,
-    )
-    surrogate_indexes = list(range(n_surrogates))
-
-    # generate replicates
-    replicates = []
-    for _ in range(n_boot):
-        surrogate_pair = _random_combination(surrogate_indexes, r=2)
-        neuron_1, neuron_2 = (
-            st_1_surrogates[surrogate_pair[0]],
-            st_2_surrogates[surrogate_pair[1]],
-        )
-        replicates.append(
-            cross_corr(
-                neuron_1,
-                neuron_2,
-                bin_window=bin_window,
-                num_lags=num_lags,
-                as_df=False,
-                t_start=t_start,
-                t_stop=t_stop,
-            )[1]
-        )
-    replicates = np.array(replicates)
-
-    p = []
-    if tail == "two_tailed":
-        replicates = np.absolute(replicates)
-        for i, observed in enumerate(observed_cc):
-            reps = replicates[:, i]
-            if observed < np.nanmean(reps):
-                p.append(np.nanmean(reps < observed))
-            else:
-                p.append(np.nanmean(reps > observed))
-    elif tail == "upper":
-        p = [
-            np.nanmean(reps[:, i] > observed for i, observed in enumerate(observed_cc))
-        ]
-    elif tail == "lower":
-        p = [
-            np.nanmean(reps[:, i] < observed for i, observed in enumerate(observed_cc))
-        ]
-    else:
-        raise ValueError(
-            "Could not parse tail value. Select one of"
-            "{'Two tailed', 'lower', 'upper'} - 'upper' if hypothesising a positive r"
-        )
+    lam = np.mean(cc)
+    p = np.array(list(map(lambda x: ppois(x, mu=lam, tail="two_tailed"), cc)))
     p = np.array(p)
+
     if tail == "two_tailed":
         p = p * 2
 
@@ -236,8 +175,6 @@ def cross_corr_test(
         p = p_adjust(p, method=p_adjust_method)
 
     if not as_df:
-        return time_bins, observed_cc, p
+        return t, cc, p
     else:
-        return pd.DataFrame(
-            {"time_sec": time_bins, "crosscorrelation": observed_cc, "p": p}
-        )
+        return pd.DataFrame({"time_sec": t, "crosscorrelation": cc, "p": p})
