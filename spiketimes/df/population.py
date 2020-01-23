@@ -33,6 +33,9 @@ def population_coupling_df(
         a pandas.DataFrame containing columns labelled {neuron_col, "time_sec", "zscore"}  
     """
     ROUNDING_PRECISION = 5
+    FRAC_TO_COMPARE = 4
+
+    bin_idx_to_start = ((num_lags * 2) + 1) // FRAC_TO_COMPARE
     frames: list = []
     neurons = df[neuron_col].unique()
     for neuron in neurons:
@@ -50,7 +53,7 @@ def population_coupling_df(
             t_stop=t_stop,
             delete_0_lag=False,
         )
-        z = stats.zscore(cc)
+        z = stats.zmap(cc, cc[bin_idx_to_start:])
         t = np.round(t, ROUNDING_PRECISION)
         df_out = pd.DataFrame({"time_sec": t, "zscore": z, neuron_col: neuron})
         frames.append(df_out)
@@ -63,8 +66,8 @@ def population_coupling_df_by(
     neuron_col: str = "neuron_id",
     spiketimes_col: str = "spiketimes",
     by_col: str = "session_name",
-    bin_window: float = 0.01,
-    num_lags: int = 100,
+    bin_window: float = 0.001,
+    num_lags: int = 400,
     t_start: float = None,
     t_stop: float = None,
 ):
