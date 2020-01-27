@@ -2,8 +2,12 @@ import numpy as np
 
 
 def homogenous_poisson_process(rate, t_stop, t_start=0):
-    """ Return timings of events arrising from a homogenous poisson process of a
+    """
+    Return timings of events arrising from a homogenous poisson process of a
     given rate (intensity) between a given start and stop times
+    
+    params:
+
     """
     beta = 1 / rate
     events = []
@@ -20,7 +24,8 @@ def homogenous_poisson_process(rate, t_stop, t_start=0):
 
 
 def imhomogenous_poisson_process(time_rate: list, t_start=0):
-    """Simulate an imhomogenous poisson process
+    """
+    Simulate an imhomogenous poisson process
 
     time_rate: List of tuples with elements (time_period, rate).
                For each sucessive tuple, a homogenous process of duration time_period with 

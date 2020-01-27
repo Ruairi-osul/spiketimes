@@ -1,5 +1,12 @@
 import pytest
 from spiketimes.alignment import align_to, negative_align
+from spiketimes.alignment.binning import (
+    binned_spiketrain,
+    binned_spiketrain_bins_provided,
+    bin_to_bool,
+    which_bin,
+    spike_count_around_event,
+)
 import numpy as np
 
 
@@ -106,4 +113,69 @@ class TestNegativeAlign:
         b = np.arange(1.1, 3, 0.5)
         expected = np.array([np.nan, -0.1, np.nan, np.nan, np.nan])
         actual = negative_align(a, b, no_before=True)
+        np.testing.assert_allclose(actual, expected)
+
+
+class AlignAround:
+    def test_normal(self):
+        pass
+
+
+class TestBinnedSpikeTrain:
+    def test_normal(self):
+        FS = 2
+        T_START = 0
+        spiketrain = np.array([0.5, 0.6, 1.1, 1.2, 2.1, 3])
+
+        expected_bins = np.array([0.5, 1, 1.5, 2, 2.5, 3])
+        expected_values = np.array([0, 2, 2, 0, 1, 1])
+
+        actual_bins, actual_values = binned_spiketrain(
+            spiketrain=spiketrain, fs=FS, t_start=T_START
+        )
+        np.testing.assert_allclose(actual_bins, expected_bins)
+        np.testing.assert_allclose(actual_values, expected_values)
+
+
+class TestBinsProvided:
+    def test_normal(self):
+        bins = np.arange(0, 2.6, 0.5)
+        spiketimes = np.array([0.1, 0.2, 0.2, 0.8, 1.1, 1.5, 1.9, 2.2])
+
+        expected = np.array([3, 1, 1, 2, 1])
+        actual = binned_spiketrain_bins_provided(spiketimes, bins)
+        np.testing.assert_allclose(actual, expected)
+
+
+class TestBinToBool:
+    def test_normal(self):
+        binned_arr = np.array([0, 10, 20, 0, 3, 1, 0, 0, 0, 2])
+        expected = np.array([0, 1, 1, 0, 1, 1, 0, 0, 0, 1])
+        actual = bin_to_bool(binned_arr)
+        np.testing.assert_allclose(actual, expected)
+
+
+class TestWhichBin:
+    def test_normal(self):
+        spiketimes = np.array([0.1, 0.2, 0.3, 0.6, 1.1])
+        bins = np.arange(0, 2, 0.5)
+
+        expected_idx = np.array([0, 0, 0, 1, 2])
+        expected_vals = np.array([0.5, 0.5, 0.5, 1, 1.5])
+
+        actual_idx, actual_values = which_bin(spiketimes, bin_edges=bins)
+
+        np.testing.assert_allclose(actual_idx, expected_idx)
+        np.testing.assert_allclose(actual_values, expected_vals)
+
+
+class TestSpikeCountAroundEvent:
+    def test_normal(self):
+        BINSIZE = 0.2
+        events = np.arange(0, 4.1, 0.5)
+        spiketrain = np.array([0.1, 0.3, 0.51, 0.56, 0.7, 0.72, 1.1, 1.9, 2, 2.5, 3.6])
+
+        expected = np.array([1, 2, 1, 0, 1, 1, 0, 1, 0])
+        actual = spike_count_around_event(spiketrain, events, binsize=BINSIZE)
+
         np.testing.assert_allclose(actual, expected)

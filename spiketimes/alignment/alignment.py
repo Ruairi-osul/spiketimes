@@ -2,12 +2,24 @@ import numpy as np
 import pandas as pd
 
 
-def align_to(to_be_aligned, to_align_to, no_beyond=False):
-    """Align to_be_aligned to to_align_to.
+def align_to(
+    to_be_aligned: np.ndarray, to_align_to: np.ndarray, no_beyond: bool = False
+):
+    """
+    Align to_be_aligned to to_align_to.
     For each element in to_be aligned, find the closest element in to_align_to with a lower value.
     Returns np.nan for elements in to_be_aligned smaller than the smallest element in to_be_aligned
     Optionally specify no_beyond. If specified, sets all elements in to_be_aligned larger than to_align_to
     equal to np.nan
+
+    params:
+        to_be_aligned: an np.ndarray to align
+        to_align_to: an np.ndarray of events to align to
+        no_beyond: if True, returns np.nan for each event in to_be_aligned
+                   occuring after the last event in to_align_to
+    
+    returns:
+        a np.ndarray of to_be_aligned aligned to to_align_to
     """
 
     if isinstance(to_be_aligned, pd.core.series.Series):
@@ -50,11 +62,23 @@ def align_to(to_be_aligned, to_align_to, no_beyond=False):
 
 
 def negative_align(to_be_aligned, to_align_to, no_before=False):
-    """Align each element in to_be_aligned to the closest larger element
-    in to_align_to
-    
+    """
+    Negatively align each element in to_be_aligned to to_align_to.
+    For each element in to_be_aligned, the latency between it and the closest
+    larger element in to_aligned_to is returned.
+
     Optionally return nan for elements in to_be_aligned occuring before the
-    first element in to_align_to"""
+    first element in to_align_to
+    
+    params:
+        to_be_aligned: an np.ndarray to align
+        to_align_to: an np.ndarray of events to align to
+        no_before: if True, returns np.nan for each event in to_be_aligned
+                   occuring before the first event in to_align_to
+    
+       returns:
+        a np.ndarray of to_be_aligned aligned to to_align_to 
+    """
 
     if isinstance(to_be_aligned, pd.core.series.Series):
         to_be_aligned = to_be_aligned.values
@@ -112,7 +136,7 @@ def align_around(
         max_latency: latencies above this threshold will be returned as nan
 
     """
-
+    # TODO: compare to approach used by df compare pos to neg and maybe switch
     postive_latencies = align_to(to_be_aligned, to_align_to, no_beyond=True)
     negative_latencies = negative_align(to_be_aligned, to_align_to, no_before=True)
 
@@ -126,27 +150,3 @@ def align_around(
     if max_latency:
         latencies[latencies > max_latency] = np.nan
     return latencies
-
-
-def nearest_smaller_event(spike_times, events, returns="index"):
-    """Given an array of spiketimes and events array, calculates
-    the index or value of the closest smaller event
-
-    spike_times: an array of spiketimes
-    events: an event of array times
-    returns: {"index", "value"} specify whether to return the index or value 
-        of the closest event 
-    """
-    pass
-
-
-def nearest_larger_event(spike_times, events):
-    """Given an array of spiketimes and events array, calculates
-    the index or value of the closest larger event
-
-    spike_times: an array of spiketimes
-    events: an event of array times
-    returns: {"index", "value"} specify whether to return the index or value 
-        of the closest event 
-    """
-    pass
