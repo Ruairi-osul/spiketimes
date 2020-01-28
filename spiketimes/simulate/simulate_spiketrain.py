@@ -1,13 +1,16 @@
 import numpy as np
 
 
-def homogenous_poisson_process(rate, t_stop, t_start=0):
+def homogenous_poisson_process(rate: float, t_stop: float, t_start: float = 0):
     """
-    Return timings of events arrising from a homogenous poisson process of a
-    given rate (intensity) between a given start and stop times
+    Simulate a poisson process. Returns event timings in seconds.     
     
     params:
-
+        rate: intensity of time poisson process. How many events per second.
+        t_stop: the time after which sampling stops
+        t_start: the time from which sampling starts
+    returns:
+        numpy array containing event times in seconds
     """
     beta = 1 / rate
     events = []
@@ -23,15 +26,18 @@ def homogenous_poisson_process(rate, t_stop, t_start=0):
     return np.array(events) + t_start
 
 
-def imhomogenous_poisson_process(time_rate: list, t_start=0):
+def imhomogenous_poisson_process(time_rate: list, t_start: float = 0):
     """
-    Simulate an imhomogenous poisson process
+    Simulate an imhomogenous poisson process. Returns event times in seconds.
 
-    time_rate: List of tuples with elements (time_period, rate).
-               For each sucessive tuple, a homogenous process of duration time_period with 
-               rate (intensity) rate will be appended 
-    t_stop: The maximum time allowed event time
-    t_start: The start time
+    params:
+        time_rate: List of tuples with elements (time_period, rate).
+                For each sucessive tuple, a homogenous process of duration time_period with 
+                rate (intensity) rate will be appended
+        t_stop: the time after which no sampling will occur
+        t_start: the time at which sampling is started
+    returns:
+        a numpy array of event times in seconds
     """
     out = np.array([])
     for timeperiod, rate in time_rate:

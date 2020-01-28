@@ -22,10 +22,18 @@ def cov(isi: np.ndarray, axis: int = 0):
 
 
 def cv2(isi: np.ndarray):
+    """
+
+
+    """
     return 2 * np.mean(np.absolute(np.diff(isi)) / (isi[:-1] + isi[1:]))
 
 
 def cv2_isi(spiketrain: np.ndarray):
+    """
+
+
+    """
     return cv2(inter_spike_intervals(spiketrain))
 
 

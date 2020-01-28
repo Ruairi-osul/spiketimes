@@ -5,15 +5,40 @@ import pandas as pd
 import numpy as np
 
 
-def ifr(spiketimes, fs, t_start=None, t_stop=None, sigma=None, as_df=True):
+def ifr(
+    spiketrain: np.ndarray,
+    fs: float,
+    t_start: float = None,
+    t_stop: float = None,
+    sigma: float = None,
+    as_df: float = True,
+):
+    """
+    Given a numpy array of spiketimes, estimates its instantaneous firing rate.
+    Firing rate is estimated by discretising the spiketrain and convolving with
+    a gaussian kernal.
+
+    params:
+        spiketrain: numpy array of spiketimes in seconds
+        fs: sampling rate to use to discretise the spiketrain
+        t_start: if specified, only returns times after this point
+        t_stop: it specified, only returns times before this point
+        sigma: hyperparameter used to control width of gaussian kernel.
+               if left as None, will guess appropriate shape based on spiking 
+               properties
+        as_df: whether to return results as pandas DataFrame
+    returns:
+        time_points, ifr
+
+    """
     if t_start is None:
-        t_start = spiketimes[0]
+        t_start = spiketrain[0]
     if t_stop is None:
-        t_stop = spiketimes[-1]
-    df = binned_spiketrain(spiketimes, fs, t_stop=t_stop, t_start=t_start, as_df=True)
+        t_stop = spiketrain[-1]
+    df = binned_spiketrain(spiketrain, fs, t_stop=t_stop, t_start=t_start, as_df=True)
     df["spike_count"] = df["spike_count"].divide(1 / fs)
     if sigma is None:
-        sigma = sskernel(spiketimes, tin=None, bootstrap=False)["optw"]
+        sigma = sskernel(spiketrain, tin=None, bootstrap=False)["optw"]
     smoothed = gaussian_filter1d(df["spike_count"], sigma)
     if not as_df:
         return df["time"].values, smoothed
@@ -21,7 +46,9 @@ def ifr(spiketimes, fs, t_start=None, t_stop=None, sigma=None, as_df=True):
         return pd.DataFrame({"time": df["time"], "ifr": smoothed})
 
 
-def mean_firing_rate(spiketrain, t_start=None, t_stop=None):
+def mean_firing_rate(
+    spiketrain: np.ndarray, t_start: float = None, t_stop: float = None
+):
     """
     Calculate the mean firing rate of a spiketrain by summing total spikes
     and dividing by time.
@@ -46,7 +73,13 @@ def mean_firing_rate(spiketrain, t_start=None, t_stop=None):
     return total_spikes / total_time
 
 
-def mean_firing_rate_ifr(spiketrain, fs, t_start=None, t_stop=None, min_fr=None):
+def mean_firing_rate_ifr(
+    spiketrain: np.ndarray,
+    fs: float,
+    t_start: float = None,
+    t_stop: float = None,
+    min_fr: float = None,
+):
     """
     Calculate the mean firing rate of a spiketrain by first estimating the instantaneous
     firing rate at some sampling interval and then taking the mean.

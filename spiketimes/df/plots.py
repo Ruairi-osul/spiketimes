@@ -18,7 +18,26 @@ def plot_waveform_peaks(
     peaks_plot_kwargs: dict = None,
 ):
     """
-    Plots an average waveform and with peaks highlighted
+    Plots an average waveform and with peaks highlighted.
+    Requires two dataframes in long format: one containing waveform timepoints,
+    another containing waveform peaks.
+
+    params:
+        df_waveforms: dataframe containing waveform information
+        df_peaks: dataframe containing peak information
+        neuron_id: id of neuron to plot
+        ax: matplotlib axes object to plot on
+        figsize: tuple of figure size
+        df_waveforms_neuron_col: label of column containing in df_waveforms containing neuron infomation
+        df_waveforms_value_col: label of column containing in df_waveforms containing waveform value infomation
+        df_waveforms_index_col: label of column containing in df_waveforms containing wavefrom index infomation
+        df_peaks_neuron_id_col: label of column containing in df_peaks containing neuron infomation
+        df_peaks_peak_idx_col: label of column containing in df_peaks containing peak index infomation
+        df_peaks_peak_value_col: label of column containing in df_peaks containing peak value infomation
+        waveform_plot_kwargs: kwargs to pass to matplotlib.pyplot.plot
+        peaks_plot_kwargs: kwargs to pass to matplotlib.pyplot.plot
+    returns:
+        axes object
     """
     if waveform_plot_kwargs is None:
         waveform_plot_kwargs = {}

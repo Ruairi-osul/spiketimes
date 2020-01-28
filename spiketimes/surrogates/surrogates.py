@@ -82,7 +82,7 @@ def jitter_spiketrains(
     ]
 
 
-def jitter_spiketrains_old(
+def _jitter_spiketrains_old(
     spiketrain: np.ndarray,
     sampling_interval: float,
     n: int,

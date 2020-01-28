@@ -132,7 +132,7 @@ def align_around(
         to_be_aligned: an np.ndarray containing data to be aligned
         to_align_to: a np.ndarray containing data to align to
         t_before: events occuring t_before or less before an event will be
-                  negatively aligned to that event
+                  negatively aligned to that event. Should be positive.
         max_latency: latencies above this threshold will be returned as nan
 
     """

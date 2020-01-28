@@ -5,7 +5,7 @@ from scipy.stats import zscore
 
 
 def population_coupling(
-    spiketrain,
+    spiketrain: np.ndarray,
     spiketrain_list: list,
     bin_window: float = 0.01,
     num_lags: int = 100,
@@ -13,6 +13,10 @@ def population_coupling(
     t_start: float = None,
     t_stop: float = None,
 ):
+    """
+
+
+    """
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:

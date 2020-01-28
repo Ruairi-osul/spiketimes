@@ -33,3 +33,4 @@ from .autocorrelation import (
     cross_corr_between_groups_test,
 )
 from .population import population_coupling_df, population_coupling_df_by
+from .plots import plot_waveform_peaks

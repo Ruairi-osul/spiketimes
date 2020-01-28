@@ -57,3 +57,9 @@ def raster_multiple_neurons(spike_times, ax=None, t_min=None, t_max=None, **kwar
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     return ax
+
+
+def psth_raster():
+    # TODO
+    raise NotImplementedError()
+

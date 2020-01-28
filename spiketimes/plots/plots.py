@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from spiketimes.alignment import align_to, negative_align
@@ -14,10 +15,22 @@ def psth(
     ax=None,
     hist_kwargs: dict = None,
 ):
-    """Contruct a peristimulus time histogram of spike_times with respect to events
+    """
+    Contruct a peristimulus time histogram of spiketimes with respect to events.
     t_before defines the time before time 0 (when the event occured) to include 
-    in the histogram"""
-    # TODO implement binwidth functionality
+    in the histogram
+
+    params:
+        spiketimes: np.array of spiketimes in seconds
+        events: np.array of event times in the same units as spiketimes
+        binwidth: time in seconds of time bins
+        t_before: the time before the event to include in the psth
+        max_latency: the maximum allowed latency
+        ax: matloblib axes object to use
+        hist_kwargs: dict of kwargs to pass to matplotlib.pyplot.hist
+    returns:
+        matplotlib.pyplot.axes object
+    """
 
     if ax is None:
         _, ax = plt.subplots()
@@ -34,16 +47,26 @@ def psth(
 
 def add_event_vlines(
     ax,
-    events,
+    events: np.ndarray,
     linestyle: str = "--",
     color: str = "grey",
     t_min: float = None,
     t_max: float = None,
     vline_kwargs: dict = None,
 ):
-    """Add vertical lines at the point(s) specified in events
+    """
+    Add vertical lines to a matplotlib axes object at the point(s) specified in events.
     t_min and t_max define minimum and maximum timepoints for events i.e. no
-    events outside these limits will be plotted"""
+    events outside these limits will be plotted.
+
+    params:
+        ax: the axes to plot on top of
+        events: an array of points on the x axis to plot
+        t_min: if specified, no points less than this will be plotted
+        t_max: if specified, no points greater than this will be plotted
+    returns:
+        matplotlib axes
+    """
     if vline_kwargs is None:
         vline_kwargs = {}
     try:
