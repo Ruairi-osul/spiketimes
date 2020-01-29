@@ -29,7 +29,14 @@ def mean_firing_rate_ifr_by_neuron(
 
 def mean_firing_rate_ifr(df: pd.core.frame.DataFrame, ifr_col: str = "ifr"):
     """
-    Given a dataframe containing a ifr column, calculates the mean 
+    Given a dataframe containing a instantaneous firing rate column,
+    calculates the spiketrain's mean firing rate
+
+    params:
+        df: dataframe containing the data
+        ifr_col: column containing  instantaneous firing rate estimates
+    returns:
+        a scaler of mean firing rate
     """
     return df[ifr_col].mean()
 
@@ -39,6 +46,19 @@ def cv_isi_by_neuron(
     spiketimes_col: str = "spiketimes",
     neuron_col: str = "neuron_id",
 ):
+    """
+    Given a dataframe containing spiketimes indexed by neuron,
+    calculates the coefficient of variation of inter-spike-intervals
+    for each neuron. CV_ISI can be used as a metric of regularity of spiking.
+
+    params:
+        df: the dataframe containing the data
+        spiketimes_col: label of column containing spiketimes
+        neuron_col: label of column indexes the neuron responsible 
+                    for the spike
+    returns:
+        a dataframe with columns neuron_col and cv_isi
+    """
     return (
         df.groupby(neuron_col)
         .apply(lambda x: cv_isi(x[spiketimes_col].values))
@@ -47,11 +67,24 @@ def cv_isi_by_neuron(
     )
 
 
-def cv2_by_neuron(
+def cv2_isi_by_neuron(
     df: pd.core.frame.DataFrame,
     spiketimes_col: str = "spiketimes",
     neuron_col: str = "neuron_id",
 ):
+    """
+    Given a dataframe containing spiketimes indexed by neuron,
+    calculates the cv2 of interspike intervals for each neuron. 
+    CV2_ISI can be used as a metric of regularity of spiking.
+
+    params:
+        df: the dataframe containing the data
+        spiketimes_col: label of column containing spiketimes
+        neuron_col: label of column indexes the neuron responsible 
+                    for the spike
+    returns:
+        a dataframe with columns neuron_col and cv2_isi
+    """
     return (
         df.groupby(neuron_col)
         .apply(lambda x: cv2_isi(x[spiketimes_col].values))

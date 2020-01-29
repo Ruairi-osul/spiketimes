@@ -41,6 +41,20 @@ def jitter_spiketrain(
     t_start: float = None,
     t_stop: float = None,
 ):
+    """
+    Given a numpy array spiketrain, generates a single surrogate by jittering
+    spiketimes. The spiketrain is discritised according to some jitter interval
+    inside each bin the spike count should remain similar while the spiketimes
+    are randomised.
+
+    params:
+        spiketrain: a numpy array of spiketimes in seconds
+        jitter_window_size: the size of the timebins used to discretise the spiketrain
+        t_start: if specified, spikes before this limit will be discarded
+        t_stop: if specified, spikes after this limit will be discarded
+    returns:
+        a numpy array of a surrogate jittered spiketrain
+    """
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:
@@ -67,6 +81,21 @@ def jitter_spiketrains(
     t_start: float = None,
     t_stop: float = None,
 ):
+    """
+    Given a numpy array spiketrain, generates n surrogates by jittering
+    spiketimes. The spiketrain is discritised according to some jitter interval
+    inside each bin the spike count should remain similar while the spiketimes
+    are randomised.
+
+    params:
+        spiketrain: a numpy array of spiketimes in seconds
+        n: the number of surrogate spiketrains to return 
+        jitter_window_size: the size of the timebins used to discretise the spiketrain
+        t_start: if specified, spikes before this limit will be discarded
+        t_stop: if specified, spikes after this limit will be discarded
+    returns:
+        a list of numpy arrays containing surrogate jittered spiketrains
+    """
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:

@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from scipy.stats import poisson
 
 
 def _random_combination(iterable, r):
@@ -55,11 +56,10 @@ def p_adjust(pvalues: np.ndarray, method="Benjamini-Hochberg"):
     return new_pvalues
 
 
-def ppois(q: int, mu: int, tail: str = "two_tailed"):
+def _ppois(q: int, mu: int, tail: str = "two_tailed"):
     """
     Calculates the cumulative of the Poisson distribution
     """
-    from scipy.stats import poisson
 
     if tail == "lower":
         result = poisson.cdf(k=q, mu=mu)
@@ -75,11 +75,10 @@ def ppois(q: int, mu: int, tail: str = "two_tailed"):
     return result
 
 
-def dpois(x, mu):
+def _dpois(x, mu):
     """
     Calculates the density/point estimate of the Poisson distribution
     """
-    from scipy.stats import poisson
 
     result = poisson.pmf(k=x, mu=mu)
     return result

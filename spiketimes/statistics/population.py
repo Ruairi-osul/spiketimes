@@ -14,8 +14,21 @@ def population_coupling(
     t_stop: float = None,
 ):
     """
+    Given a spiketrain and a list of simultaneously recorded spiketrains, 
+    calculates a metric of population spike coupling for that spiketrain. 
+    The metric is  calculated by calculating and zscore standardising cross correlation 
+    between an individual spike train and the merged spiketrain of all other neurons. 
+    Large Z score cross correlation at lag=0 is indicative of high population coupling.
 
-
+    params:
+        spiketrain: a numpy array of spiketimes in seconds 
+        spiketrain_list: a list of numpy arrays containing spike times of individual 
+                         simultaneously-recorded neurons.
+        bin_window: size of time bin to use when calculating crosscorrelation
+        num_lags: number of lags to shift forwards and backwargs for crosscorrelation
+        as_df: whether to return the result as a pandas DataFrame
+        t_start: if specified, spikes before this limit will not be consisdered
+        t_stop: if specified, spikes after this limit will not be considered
     """
     if t_start is None:
         t_start = spiketrain[0]

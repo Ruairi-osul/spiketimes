@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
+with open("requirements.txt") as f:
     reqs = f.read().splitlines()
 
 description = ""
 long_description = ""
 setup(
-    name="siketimes",
+    name="spiketimes",
     description=description,
     long_description=long_description,
     version="0.0.1a1",
@@ -18,6 +18,6 @@ setup(
     project_urls={"Source": "https://github.com/Ruairi-osul/spiketimes"},
     packages=find_packages(),
     python_requires=">=3.3",
-    install_requires=reqs
+    install_requires=reqs,
 )
 

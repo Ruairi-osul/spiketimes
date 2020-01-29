@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import signal
 from ..alignment import binned_spiketrain
 from ..surrogates import jitter_spiketrains
-from .utils import _random_combination, p_adjust, ppois
+from .utils import _random_combination, p_adjust, _ppois
 
 
 def auto_corr(
@@ -175,7 +175,7 @@ def cross_corr_test(
         t_stop=t_stop,
     )
     lam = np.mean(cc)
-    p = np.array(list(map(lambda x: ppois(x, mu=lam, tail="two_tailed"), cc)))
+    p = np.array(list(map(lambda x: _ppois(x, mu=lam, tail="two_tailed"), cc)))
     p = np.array(p)
 
     if tail == "two_tailed":

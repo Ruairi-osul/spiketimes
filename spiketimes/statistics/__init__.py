@@ -9,3 +9,4 @@ from .spiketrain_descriptive_statistics import (
 from .correlation import spike_count_correlation, spike_count_correlation_test
 from .autro_cross_corr import auto_corr, cross_corr, cross_corr_test
 from .population import population_coupling
+from .utils import p_adjust

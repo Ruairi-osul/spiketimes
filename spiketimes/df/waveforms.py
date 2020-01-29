@@ -81,6 +81,23 @@ def waveform_width_by_neuron(
     peak_name_col: str = "peak_name",
     peak_idx_col: str = "peak_idx",
 ):
+    """
+    Given a dataframe with one row per wavefrom peak, calculates waveform width
+    for each neuron.
+
+    params:
+        df: dataframe containing the data
+        peak_names: names of peaks to be used to calculate distance. Should be a
+                    list of strings
+        neuron_col: label of column identifying the neuron responsible for the 
+                    waveform peak
+        peak_name_col: label of column identifying the peak name
+        peak_idx_col: label of column containing the index position
+                       of timing of the peak
+    returns:
+        the euclidean distance between the two peaks
+
+    """
     return (
         df.groupby(neuron_col)
         .apply(
@@ -97,11 +114,24 @@ def waveform_width_by_neuron(
 
 
 def calculate_waveform_width(
-    df,
+    df: pd.core.frame.DataFrame,
     peak_names: list = None,
     peak_name_col: str = "peak_name",
     peak_idx_col: str = "peak_idx",
 ):
+    """
+    Given a dataframe with one row per wavefrom peak, calculates waveform width
+
+    params:
+        df: dataframe containing the data
+        peak_names: names of peaks to be used to calculate distance. Should be a
+                    list of strings
+        peak_name_col: label of column identifying the peak name
+        peak_idx_col: label of column containing the index position
+                       of timing of the peak
+    returns:
+        the euclidean distance between the two peaks
+    """
     if df[peak_idx_col].isna().any():
         raise ValueError("Cannot run on data with NaNs. Use df.dropna() first")
     if peak_names is None:
