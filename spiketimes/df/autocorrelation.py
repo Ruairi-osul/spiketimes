@@ -15,15 +15,19 @@ def auto_corr_df(
     num_lags: int = 100,
 ):
     """
-    Given a dataframe of spiketimes identified by a neuron column, 
-    calculates the autocorrelation function for each neuron
+    Given a dataframe containing spiketimes where each spike is indexed 
+    by neuron, calculates autocorrealtion for each neuron and aggregates the
+    results.
 
     params:
-        df: dataframe containing the data
-        neuron_col: label of the column containing neuron ids
-        fs: sampling rate to use to discretise the spiketimes
-        num_lags: the number of time bins forwards and backwards to 
-                  shift the correlation
+        df: dataframe containing spiketimes, neuron ids, group ids,
+        neuron_col: label of column containing neuron ids
+        spiketimes_col: label of column containing spiketimes
+        tail: which tail to use for hypothesis tests ('two tail recommended')
+        bin_window: bin width for cross correlation
+        num_lags: number of lags forward and backwards around lag 0 to return 
+    returns:
+        pandas DataFrame with columns neuron_1, neuron_2, autocorrelation
     
     """
     return (
@@ -48,15 +52,20 @@ def cross_corr_df(
     t_stop: float = None,
 ):
     """
-    Given a dataframe of spiketimes identified by a neuron column, 
-    calculates the cross correlation function between each pair of neurons
+    Given a dataframe containing spiketimes where each spike is indexed by neuron,
+    calculates crosscorrelation between each pair of neurons. 
 
     params:
-        df: dataframe containing the data
-        neuron_col: label of the column containing neuron ids
-        fs: sampling rate to use to discretise the spiketimes
-        num_lags: the number of time bins forwards and backwards to 
-                  shift the correlation
+        df: dataframe containing spiketimes, neuron ids, group ids,
+        neuron_col: label of column containing neuron ids
+        spiketimes_col: label of column containing spiketimes
+        tail: which tail to use for hypothesis tests ('two tail recommended')
+        bin_window: bin width for cross correlation
+        num_lags: number of lags forward and backwards around lag 0 to return 
+        t_start: if specified, no spikes before this limit will be considered
+        t_stop: if specified, no spikes before after limit will be considered
+    returns:
+        pandas DataFrame with columns neuron_1, neuron_2, crosscorrelation
     
     """
     neurons = df[neuron_col].unique()
@@ -98,18 +107,26 @@ def cross_corr_df_test(
     n_cores: int = None,
 ):
     """
-    Given a dataframe of spiketimes identified by a neuron column, 
-    calculates the cross correlation function between each pair of neurons.
-    Also test significance of each time lag using a bootstrap approach inwhich
-    crosscorrelation at each lag is compared to cross correlation of jitter
-    surrogate spiketrains. 
+    Given a dataframe containing spiketimes where each spike is indexed by neuron,
+    calculates crosscorrelation and between each pair of neurons. Also calculates 
+    significance by assuming the cross correlation bin values follow a 
+    poisson distrobution.
 
     params:
-        df: dataframe containing the data
-        neuron_col: label of the column containing neuron ids
-        bin_window: size of bins in seconds used to discretise the spiketrain
-        num_lags: the number of time bins forwards and backwards to 
-                  shift the correlation
+        df: dataframe containing spiketimes, neuron ids, group ids,
+        neuron_col: label of column containing neuron ids
+        spiketimes_col: label of column containing spiketimes
+        tail: which tail to use for hypothesis tests ('two tail recommended')
+        bin_window: bin width for cross correlation
+        num_lags: number of lags forward and backwards around lag 0 to return 
+        t_start: if specified, no spikes before this limit will be considered
+        t_stop: if specified, no spikes before after limit will be considered
+        adjust_p: whether to adjust p values for multiple comparisons (strongly recommended)
+        p_adjust_method: method to use for p adjustment {'Benjamini-Hochberg', 
+                                                        'Bonferroni', 'Bonferroni-Holm'}
+        n_cores: number of cores to use for multiprocessing
+    returns:
+        pandas DataFrame with columns neuron_1, neuron_2, crosscorrelation, p
     """
     neurons = df[neuron_col].unique()
     neuron_combs = list(combinations(neurons, r=2))
@@ -161,6 +178,30 @@ def cross_corr_between_groups_test(
     p_adjust_method: str = "Benjamini-Hochberg",
     n_cores: int = None,
 ):
+    """
+    Given a dataframe containing spiketimes where each spike is indexed by neuron
+    and group, calculates cross correlation between each pair of neurons in different
+    groups. Also calculates significance by assuming the cross correlation bin 
+    values follow a poisson distrobution.
+
+    params:
+        df: dataframe containing spiketimes, neuron ids, group ids,
+        neuron_col: label of column containing neuron ids
+        spiketimes_col: label of column containing spiketimes
+        group_col: label of column containing group ids
+        tail: which tail to use for hypothesis tests ('two tail recommended')
+        bin_window: bin width for cross correlation
+        num_lags: number of lags forward and backwards around lag 0 to return 
+        t_start: if specified, no spikes before this limit will be considered
+        t_stop: if specified, no spikes before after limit will be considered
+        adjust_p: whether to adjust p values for multiple comparisons (strongly recommended)
+        p_adjust_method: method to use for p adjustment {'Benjamini-Hochberg', 
+                                                         'Bonferroni', 'Bonferroni-Holm'}
+        n_cores: number of cores to use for multiprocessing
+    returns:
+        pandas DataFrame with columns neuron_1, neuron_2, group_1, group_2, 
+                                      crosscorrelation, p
+    """
     frames: list = []
     groups = df[group_col].unique()
     for group_1, group_2 in combinations(groups, r=2):

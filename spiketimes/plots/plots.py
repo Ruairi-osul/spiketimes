@@ -35,7 +35,7 @@ def psth(
     if ax is None:
         _, ax = plt.subplots()
 
-    latencies = align_around(spiketimes, events, t_before, max_latency)
+    latencies = align_around(spiketimes, events, t_before, max_latency, drop=True)
     bins = np.arange(np.min(latencies), np.max(latencies), binwidth)
 
     if hist_kwargs is None:

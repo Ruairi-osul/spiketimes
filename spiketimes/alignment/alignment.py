@@ -108,6 +108,8 @@ def negative_align(to_be_aligned, to_align_to, no_before=False):
     ):
         raise TypeError("Both arrays must be numpy arrays")
 
+    # needs a dummy value to work. This appended value is not aligned to
+    to_align_to = np.concatenate([to_align_to, np.array([np.max(to_align_to) + 100])])
     max_idx = len(to_align_to) - 1
     idx = np.searchsorted(to_align_to, to_be_aligned).astype(np.int)
     idx[idx < max_idx] += 1
@@ -121,8 +123,9 @@ def negative_align(to_be_aligned, to_align_to, no_before=False):
 def align_around(
     to_be_aligned: np.ndarray,
     to_align_to: np.ndarray,
-    t_before: float = 0.2,
-    max_latency: float = 2,
+    t_before: float = None,
+    max_latency: float = None,
+    drop=False,
 ):
     """
     Aligns one array to another. Elements will be negativly aligned if they
@@ -134,19 +137,25 @@ def align_around(
         t_before: events occuring t_before or less before an event will be
                   negatively aligned to that event. Should be positive.
         max_latency: latencies above this threshold will be returned as nan
+        drop: whether to return only non nan element of 
 
     """
     # TODO: compare to approach used by df compare pos to neg and maybe switch
-    postive_latencies = align_to(to_be_aligned, to_align_to, no_beyond=True)
-    negative_latencies = negative_align(to_be_aligned, to_align_to, no_before=True)
+    postive_latencies = align_to(to_be_aligned, to_align_to, no_beyond=False)
 
-    latencies = np.concatenate(
-        (
-            negative_latencies[np.logical_not(np.isnan(negative_latencies))],
-            postive_latencies[np.logical_not(np.isnan(postive_latencies))],
+    if t_before is not None:
+        negative_latencies = negative_align(to_be_aligned, to_align_to, no_before=False)
+        latencies = np.where(
+            (negative_latencies >= (t_before * -1)),
+            negative_latencies,
+            postive_latencies,
         )
-    )
-    latencies = latencies[(latencies >= -t_before) & (latencies <= max_latency)]
+    else:
+        latencies = postive_latencies
+
     if max_latency:
         latencies[latencies > max_latency] = np.nan
+
+    if drop:
+        latencies = latencies[np.logical_not(np.isnan(latencies))]
     return latencies
