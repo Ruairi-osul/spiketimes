@@ -15,11 +15,13 @@ def auto_corr(
     t_stop: float = None,
 ):
     """
+    Returns the autocorrelation function of a spiketrain.
+
     Given a spike train and a sampling rate, discretises the spiketrain
     and returns its autocorrelation. The autocorrelation array contains points
     (0 - num_lags) to (0 + num_lags) excluding 0 lag.
 
-    params:
+    Args:
         spiketrain: a numpy array or pandas.Series containing 
                     timepoints of spiketimes
         bin_window: the size of the bins used to discretise the spiketrain
@@ -29,7 +31,7 @@ def auto_corr(
                  to discretise the spiketrain
         t_stop: if specified, provides the right edge of the last time bin used
                  to discretise the spiketrain
-    returns:
+    Returns:
         time_bins, autocorrelation_values
     """
 

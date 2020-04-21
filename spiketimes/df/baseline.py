@@ -29,7 +29,6 @@ def zscore_normalise_by_neuron(
     neuron_id_colname="neuron_id",
     new_colname="zscore",
 ):
-    # TODO: convert to zmap
     # create baseline df
     dfn = create_baseline_df(
         df,

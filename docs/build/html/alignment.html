@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Alignment &mdash; spiketimes 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> spiketimes
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Alignment</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">spiketimes</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Alignment</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/alignment.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="alignment">
+<h1>Alignment<a class="headerlink" href="#alignment" title="Permalink to this headline">¶</a></h1>
+<p>This subpackage contains functions for data alignment and binning.</p>
+<span class="target" id="module-spiketimes.alignment.alignment"></span><dl class="function">
+<dt id="spiketimes.alignment.alignment.align_around">
+<code class="sig-name descname">align_around</code><span class="sig-paren">(</span><em class="sig-param">to_be_aligned: numpy.ndarray</em>, <em class="sig-param">to_align_to: numpy.ndarray</em>, <em class="sig-param">t_before: float = None</em>, <em class="sig-param">max_latency: float = None</em>, <em class="sig-param">drop=False</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.alignment.align_around" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aligns one array to another. Elements will be negativly aligned if they
+occur at or less than t_before</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_be_aligned</strong> – an np.ndarray containing data to be aligned</p></li>
+<li><p><strong>to_align_to</strong> – a np.ndarray containing data to align to</p></li>
+<li><p><strong>t_before</strong> – events occuring t_before or less before an event will be
+negatively aligned to that event. Should be positive.</p></li>
+<li><p><strong>max_latency</strong> – latencies above this threshold will be returned as nan</p></li>
+<li><p><strong>drop</strong> – whether to return only non nan element of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a numpy array of to_be_aligned aligned to to_align_to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spiketimes.alignment.alignment.align_to">
+<code class="sig-name descname">align_to</code><span class="sig-paren">(</span><em class="sig-param">to_be_aligned: numpy.ndarray</em>, <em class="sig-param">to_align_to: numpy.ndarray</em>, <em class="sig-param">no_beyond: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.alignment.align_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Align to_be_aligned to to_align_to.
+For each element in to_be aligned, find the closest element in to_align_to with a lower value.
+Returns np.nan for elements in to_be_aligned smaller than the smallest element in to_be_aligned
+Optionally specify no_beyond. If specified, sets all elements in to_be_aligned larger than to_align_to
+equal to np.nan</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_be_aligned</strong> – an np.ndarray to align</p></li>
+<li><p><strong>to_align_to</strong> – an np.ndarray of events to align to</p></li>
+<li><p><strong>no_beyond</strong> – if True, returns np.nan for each event in to_be_aligned
+occuring after the last event in to_align_to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a np.ndarray of to_be_aligned aligned to to_align_to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spiketimes.alignment.alignment.negative_align">
+<code class="sig-name descname">negative_align</code><span class="sig-paren">(</span><em class="sig-param">to_be_aligned</em>, <em class="sig-param">to_align_to</em>, <em class="sig-param">no_before=False</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.alignment.negative_align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Negatively align each element in to_be_aligned to to_align_to.
+For each element in to_be_aligned, the latency between it and the closest
+larger element in to_aligned_to is returned.</p>
+<p>Optionally return nan for elements in to_be_aligned occuring before the
+first element in to_align_to</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_be_aligned</strong> – an np.ndarray to align</p></li>
+<li><p><strong>to_align_to</strong> – an np.ndarray of events to align to</p></li>
+<li><p><strong>no_before</strong> – if True, returns np.nan for each event in to_be_aligned
+occuring before the first event in to_align_to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a np.ndarray of to_be_aligned aligned to to_align_to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-spiketimes.alignment.binning"></span><dl class="function">
+<dt id="spiketimes.alignment.binning.bin_to_bool">
+<code class="sig-name descname">bin_to_bool</code><span class="sig-paren">(</span><em class="sig-param">binned_arr: numpy.ndarray</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.binning.bin_to_bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an array of counts, returns an array of the same size
+with 1s in non-zero elements and 0s otherwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>binned_arr</strong> – np.ndarray of counts</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>np.ndarray of 1s and 0s</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spiketimes.alignment.binning.binned_spiketrain">
+<code class="sig-name descname">binned_spiketrain</code><span class="sig-paren">(</span><em class="sig-param">spiketrain: numpy.ndarray</em>, <em class="sig-param">fs: float</em>, <em class="sig-param">t_stop: float = None</em>, <em class="sig-param">t_start: float = None</em>, <em class="sig-param">as_df: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.binning.binned_spiketrain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Discretises a spiketrain. Creates bin edges at a specified sampling rate
+and returns spike counts per each bin.
+Note: edges and counts have the same size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spiketrain</strong> – np.ndarray of spiketimes in seconds</p></li>
+<li><p><strong>fs</strong> – sampling rate used to discretise the spiketrain</p></li>
+<li><p><strong>t_stop</strong> – right edge of final bin</p></li>
+<li><p><strong>t_start</strong> – left edge of first bin</p></li>
+<li><p><strong>as_df</strong> – if true, returns reseults as pd.DataFrame</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>right edges of each bin
+counts: counts of spikes in each bin</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>edges</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spiketimes.alignment.binning.binned_spiketrain_bins_provided">
+<code class="sig-name descname">binned_spiketrain_bins_provided</code><span class="sig-paren">(</span><em class="sig-param">spiketrain: numpy.ndarray</em>, <em class="sig-param">bins: numpy.ndarray</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.binning.binned_spiketrain_bins_provided" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a numpy array of spiketimes and another of bin edges,
+returns the counts of spikes in each bin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spiketrain</strong> – np.ndarray of spiketimes in seconds</p></li>
+<li><p><strong>bins</strong> – np.ndarray of bin edges</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>np.ndarray of spike counts per bin</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spiketimes.alignment.binning.spike_count_around_event">
+<code class="sig-name descname">spike_count_around_event</code><span class="sig-paren">(</span><em class="sig-param">spiketrain: numpy.ndarray</em>, <em class="sig-param">events: numpy.ndarray</em>, <em class="sig-param">binsize: float</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.binning.spike_count_around_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an array of spiketimes and another of event times, calculates spike counts
+around the events.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spiketrain</strong> – np.ndarray of spiketimes in seconds</p></li>
+<li><p><strong>events</strong> – np.ndarray of event times in seconds</p></li>
+<li><p><strong>binsize</strong> – size of timebin around event to count in seconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>np.ndarray of spike counts in seconds</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="spiketimes.alignment.binning.which_bin">
+<code class="sig-name descname">which_bin</code><span class="sig-paren">(</span><em class="sig-param">spiketrain: numpy.ndarray</em>, <em class="sig-param">bin_edges: numpy.ndarray</em>, <em class="sig-param">right: bool = True</em>, <em class="sig-param">as_df: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#spiketimes.alignment.binning.which_bin" title="Permalink to this definition">¶</a></dt>
+<dd><p>`
+Given an array of spiketimes and an array of time bins (of the same units),
+returns the two numpy arrays of the same size as the spiketime array.
+The first array corresponds to the index of the encapsulating bin. The
+second the value of the corresponding bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spiketimes</strong> – np.ndarray of spiketimes in seconds</p></li>
+<li><p><strong>bin_edges</strong> – edges of time bins</p></li>
+<li><p><strong>right</strong> – if true, then values will be the right edge of the bin,
+left otherwise</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>np.ndarray bin indexes,
+np.ndarray of bin values</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ruairi O&#39;Sullivan
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
