@@ -29,8 +29,10 @@ def ifr(
         as_df: whether to return results as pandas DataFrame
     returns:
         time_points, ifr
-
     """
+    if len(spiketrain) <= 3:
+        return np.nan
+
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:
@@ -62,6 +64,9 @@ def mean_firing_rate(
     returns:
         mean firing rate
     """
+
+    if len(spiketrain) <= 3:
+        return np.nan
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:
@@ -96,6 +101,8 @@ def mean_firing_rate_ifr(
     returns:
         mean_firing_rate
     """
+    if len(spiketrain) <= 3:
+        return np.nan
     if t_start is None:
         t_start = spiketrain[0]
     if t_stop is None:
@@ -106,5 +113,5 @@ def mean_firing_rate_ifr(
     if min_fr:
         ifr_ = ifr_[ifr_ > min_fr]
 
-    return np.mean(ifr_)
+    return np.nanmean(ifr_)
 

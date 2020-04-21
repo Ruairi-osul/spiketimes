@@ -5,7 +5,7 @@ from .conversion import (
     df_binned_to_bool,
 )
 from .baseline import create_baseline_df, zscore_normalise_by_neuron
-from .apply import apply_by_neuron_rolling, apply_by_neuron
+from .apply import apply_by_neuron_rolling, apply_by_neuron, apply_by_neuron_by_bin
 from .alignment import align_df, align_df_by
 from .binning import bin_df
 from .waveforms import (

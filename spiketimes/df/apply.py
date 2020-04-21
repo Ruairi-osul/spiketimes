@@ -1,4 +1,6 @@
+from .binning import bin_df
 import pandas as pd
+import numpy as np
 
 
 def apply_by_neuron(
@@ -68,3 +70,39 @@ def apply_by_neuron_rolling(
 
     return pd.merge(df.reset_index(), tmp_res.reset_index()).set_index("index")
 
+
+def apply_by_neuron_by_bin(
+    df: pd.core.frame.DataFrame,
+    bins: np.ndarray,
+    func,
+    col_to_act_on: str,
+    time_column: str,
+    neuron_col: str = "neuron_id",
+    func_kwargs: dict = {},
+    returned_colname: str = "value",
+):
+    """
+    Apply a function to each neuron at specified time bins.
+
+    Args:
+        df: dataframe containing the data
+        bins: numpy array of time bins
+        func: func to call on the data
+        func_kwargs: optional dictionary of key-word-arguments to pass to func
+        col_to_act_on: label of column in df containing data to be passed to func
+        time_column: label of column in df with time info to be used for binning
+        neuron_col: label of column in df with neuron identifiers
+        returned_colname: optional label of returned column to pass 
+    returns:
+         pandas dataframe containing the results
+    """
+    return (
+	    bin_df(df=df, colname=time_column, bins=bins, bin_val_name="bin")
+	    .groupby([neuron_col, "bin"])
+	    .apply(lambda x: func(x[col_to_act_on].values, **func_kwargs))
+	    .unstack()
+	    .reset_index()
+	    .melt(id_vars=neuron_col, value_name=returned_colname)
+            .sort_values(neuron_col)
+            .reset_index(drop=True)
+    )
