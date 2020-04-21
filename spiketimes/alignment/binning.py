@@ -14,14 +14,14 @@ def binned_spiketrain(
     and returns spike counts per each bin. 
     Note: edges and counts have the same size
 
-    params:
+    Args:
         spiketrain: np.ndarray of spiketimes in seconds
         fs: sampling rate used to discretise the spiketrain
         t_stop: right edge of final bin
         t_start: left edge of first bin
         as_df: if true, returns reseults as pd.DataFrame
     
-    returns:
+    Returns:
         edges: right edges of each bin
         counts: counts of spikes in each bin
          
@@ -50,11 +50,11 @@ def binned_spiketrain_bins_provided(spiketrain: np.ndarray, bins: np.ndarray):
     Given a numpy array of spiketimes and another of bin edges, 
     returns the counts of spikes in each bin 
 
-    params:
+    Args:
         spiketrain: np.ndarray of spiketimes in seconds
         bins: np.ndarray of bin edges
     
-    returns:
+    Returns:
         np.ndarray of spike counts per bin
     """
     values, _ = np.histogram(spiketrain, bins=bins)
@@ -66,10 +66,10 @@ def bin_to_bool(binned_arr: np.ndarray):
     Given an array of counts, returns an array of the same size
     with 1s in non-zero elements and 0s otherwise
 
-    params:
+    Args:
         binned_arr: np.ndarray of counts
     
-    returns:
+    Returns:
         np.ndarray of 1s and 0s
     """
     return np.where(binned_arr != 0, 1, 0)
@@ -87,12 +87,12 @@ def which_bin(
     The first array corresponds to the index of the encapsulating bin. The
     second the value of the corresponding bin. 
     
-    params:
+    Args:
         spiketimes: np.ndarray of spiketimes in seconds
         bin_edges: edges of time bins
         right: if true, then values will be the right edge of the bin,
                left otherwise
-    returns:
+    Returns:
         np.ndarray bin indexes,
         np.ndarray of bin values
     """
@@ -116,12 +116,12 @@ def spike_count_around_event(
     Given an array of spiketimes and another of event times, calculates spike counts
     around the events.
 
-    params:
+    Args:
         spiketrain: np.ndarray of spiketimes in seconds
         events: np.ndarray of event times in seconds
         binsize: size of timebin around event to count in seconds
 
-    returns:
+    Returns:
         np.ndarray of spike counts in seconds 
     """
     bins = np.repeat(events, 2).astype(np.float64)

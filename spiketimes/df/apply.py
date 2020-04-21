@@ -13,7 +13,7 @@ def apply_by_neuron(
     Apply a function to each neuron individually and aggregate the results
     into an dataframe
     
-    params:
+    Args:
         df: pandas.DataFrame to act on
         func: function to apply
         col_to_act_on: label of column containg the data to be passed to
@@ -22,7 +22,7 @@ def apply_by_neuron(
                      function
         neuron_col: label of the column in df which containing neuron identifiers
         return_colname: label of the column to return contained the function result
-    returns:
+    Returns:
         pandas dataframe with columns: neuron_col and returned_colname
     """
     return (
@@ -45,14 +45,14 @@ def apply_by_neuron_rolling(
     """
     Apply a function in a roling window along each neuron in a dataframe
 
-    params:
+    Args:
         df: pandas dataframe containing the data
         func: funtion to apply along the datafrmae
         num_period: number of rows in the rolling window
         neuron_col: label of column containing neuron_identifiers
         returned_colname: label of returned column containing the output of
                           function
-    returns:
+    Returns:
         the original dataframe with returned_colname appended
     """
     tmp_res = (

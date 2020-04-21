@@ -12,13 +12,13 @@ def align_to(
     Optionally specify no_beyond. If specified, sets all elements in to_be_aligned larger than to_align_to
     equal to np.nan
 
-    params:
+    Args:
         to_be_aligned: an np.ndarray to align
         to_align_to: an np.ndarray of events to align to
         no_beyond: if True, returns np.nan for each event in to_be_aligned
                    occuring after the last event in to_align_to
     
-    returns:
+    Returns:
         a np.ndarray of to_be_aligned aligned to to_align_to
     """
 
@@ -70,13 +70,13 @@ def negative_align(to_be_aligned, to_align_to, no_before=False):
     Optionally return nan for elements in to_be_aligned occuring before the
     first element in to_align_to
     
-    params:
+    Args:
         to_be_aligned: an np.ndarray to align
         to_align_to: an np.ndarray of events to align to
         no_before: if True, returns np.nan for each event in to_be_aligned
                    occuring before the first event in to_align_to
     
-       returns:
+    Returns:
         a np.ndarray of to_be_aligned aligned to to_align_to 
     """
 
@@ -131,7 +131,7 @@ def align_around(
     Aligns one array to another. Elements will be negativly aligned if they
     occur at or less than t_before
 
-    params:
+    Args:
         to_be_aligned: an np.ndarray containing data to be aligned
         to_align_to: a np.ndarray containing data to align to
         t_before: events occuring t_before or less before an event will be
@@ -139,6 +139,8 @@ def align_around(
         max_latency: latencies above this threshold will be returned as nan
         drop: whether to return only non nan element of 
 
+    Returns:
+        a numpy array of to_be_aligned aligned to to_align_to
     """
     # TODO: compare to approach used by df compare pos to neg and maybe switch
     postive_latencies = align_to(to_be_aligned, to_align_to, no_beyond=False)

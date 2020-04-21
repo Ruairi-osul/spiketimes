@@ -4,12 +4,16 @@ from ..statistics import ifr
 from ..alignment import binned_spiketrain, bin_to_bool
 
 
-def list_to_df(spiketrains: list, indexes=None):
+def list_to_df(spiketrains: list, indexes: list = None):
     """
     convert a list of spiketrains into a tidy dataframe of spiketimes
-    params:
+
+    Args:
         spiketrains: list of spiketrains
-        indexes: optional list of 
+        indexes: optional list of labels for the of the spiketrains
+
+    Returns:
+        a pandas DataFrame containing one spike and id label per row
     """
     if indexes is None:
         indexes = np.arange(len(spiketrains))
@@ -38,13 +42,16 @@ def spikes_df_to_binned_df(
     Given a df containing a column of spiketimes, convert to a binned df
     with a given sampling interval
 
-    params:
+    Args:
         df: pandas dataframe to be converted
         spiketimes_col: label of the column containing the spike data.
                         data should be in unit of seconds
         fs: desired sampling frequency in seconds
         t_start: the time after which the first bin will start. defaults to 0.
         t_stop: the maximum time for the time bins 
+
+    Returns:
+        a pandas DataFrame containing the binned data
     """
     if t_stop is None:
         t_stop = df[spiketimes_col].values[-1]
