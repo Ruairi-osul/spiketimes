@@ -1,19 +1,23 @@
 import numpy as np
 import pandas as pd
-from ..statistics import ifr
-from ..alignment import binned_spiketrain, bin_to_bool
 
 
-def list_to_df(spiketrains: list, indexes: list = None):
+def list_to_df(
+    spiketrains: list,
+    indexes: list = None,
+    returned_spiketimes_label: str = "spiketimes",
+    returned_spiketrain_label: str = "spiketrain",
+):
     """
-    convert a list of spiketrains into a tidy dataframe of spiketimes
+    Convert a list of spiketrains into a tidy dataframe of spiketimes
 
     Args:
-        spiketrains: list of spiketrains
-        indexes: optional list of labels for the of the spiketrains
-
+        spiketrains: A list of numpy-array spiketrains
+        indexes: An optional list of labels for the of the spiketrains
+        returned_spiketimes_label: The label of the column in the returned DataFrame containing spiketimes
+        returned_spiketrains_label: The label of the column in the returned DataFrame containing spiketrain identifiers
     Returns:
-        a pandas DataFrame containing one spike and id label per row
+        A pandas DataFrame containing one spike and id label per row
     """
     if indexes is None:
         indexes = np.arange(len(spiketrains))
@@ -23,95 +27,91 @@ def list_to_df(spiketrains: list, indexes: list = None):
         ), "index and spiketrains must be the same size"
 
     df_list = [
-        pd.DataFrame({"spiketrain": index, "timepoint_s": spiketrain})
+        pd.DataFrame(
+            {returned_spiketrain_label: index, returned_spiketimes_label: spiketrain}
+        )
         for index, spiketrain in zip(indexes, spiketrains)
     ]
 
     return pd.concat(df_list)
 
 
-def spikes_df_to_binned_df(
-    df: pd.core.frame.DataFrame,
-    spiketimes_col: str = "spiketimes",
-    neuron_col: str = "neuron_id",
-    fs: str = 1,
-    t_start: float = None,
-    t_stop: float = None,
+def list_of_dicts_to_df(
+    list_of_dicts: list,
+    returned_spiketimes_label: str = "spiketimes",
+    returned_spiketrain_label: str = "spiketrain",
 ):
     """
-    Given a df containing a column of spiketimes, convert to a binned df
-    with a given sampling interval
+    Convert a list of named spiketrains to a dataframe.
+
+    Data must be in the format of [{"st_name": spiketimes_arr}, etc]
 
     Args:
-        df: pandas dataframe to be converted
-        spiketimes_col: label of the column containing the spike data.
-                        data should be in unit of seconds
-        fs: desired sampling frequency in seconds
-        t_start: the time after which the first bin will start. defaults to 0.
-        t_stop: the maximum time for the time bins 
-
+        list_of_dicts: A list of dicts. The dict key is the spiketrain identifier. The dict
+                       value is a numpy array of spiketimes.
+        returned_spiketimes_label: The label of the column in the returned DataFrame containing spiketimes
+        returned_spiketrains_label: The label of the column in the returned DataFrame containing spiketrain identifiers
     Returns:
-        a pandas DataFrame containing the binned data
+        A pandas DataFrame containing spiketimes indexed by spiketrain.
     """
-    if t_stop is None:
-        t_stop = df[spiketimes_col].values[-1]
-
-    return (
-        df.groupby(neuron_col)
-        .apply(
-            lambda x: binned_spiketrain(
-                x[spiketimes_col], fs=fs, t_start=t_start, t_stop=t_stop, as_df=True
-            )
-        )
-        .reset_index()
-        .drop("level_1", axis=1)
+    indexes = []
+    spiketrains = []
+    for st in list_of_dicts:
+        for i, (k, v) in enumerate(st.items()):
+            if i == 1:
+                raise ValueError(
+                    'Must pass a list of dictionaries of the form [{"stname": st_arr}'
+                )
+            indexes.append(k)
+            spiketrains.append(v)
+    return list_to_df(
+        spiketrains=spiketrains,
+        indexes=indexes,
+        returned_spiketrain_label=returned_spiketrain_label,
+        returned_spiketimes_label=returned_spiketimes_label,
     )
 
 
-def df_binned_to_bool(binned_ser: pd.core.series.Series):
-    """
-    Convert a binned Series to a boolean series of 1s and 0s.
-    """
-    return bin_to_bool(binned_ser)
-
-
-def df_ifr(df, spiketime_col="spike_time_samples", fs=1, t_start=None, t_stop=None):
-    "Given a spiketime df of a single neuron, returns an estimate of instantaneous firing rate"
-    if t_stop is None:
-        t_stop = df[spiketime_col].max()
-    if t_start is None:
-        t_start = df[spiketime_col].min()
-    return df.sort_values(spiketime_col, axis="rows").pipe(
-        lambda x: ifr(x[spiketime_col], fs=fs, t_start=t_start, t_stop=t_stop)
-    )
-
-
-def ifr_by_neuron(
-    df,
-    neuron_col,
-    spiketime_col="spike_time_samples",
-    ifr_fs=1,
-    t_start=None,
-    t_stop=None,
+def df_to_list_of_dicts(
+    df: pd.core.frame.DataFrame,
+    spiketimes_col: str = "spiketimes",
+    spiketrain_col: str = "spiketrain",
 ):
-    """Converts a df of spiketimes to a df of instantaneous firing rate.
-    Groups by neuron_col and applies df_ifr to each"""
-    if t_stop is None:
-        t_stop = df[spiketime_col].max()
-    if t_start is None:
-        t_start = df[spiketime_col].min()
-    return (
-        df.groupby(neuron_col)
-        .apply(
-            lambda x: df_ifr(
-                x,
-                spiketime_col=spiketime_col,
-                fs=ifr_fs,
-                t_start=t_start,
-                t_stop=t_stop,
-            )
-        )
-        .reset_index()
-        .drop("level_1", axis=1)
-    )
+    """
+    Convert a DataFrame of spiketrains to a list of dicts of spiketrains.
 
+    The dicts are of the form {spiketrain_id: spiketimes_array}
+
+    Args:
+        df: A pandas DataFrame of spiketimes indexed by spiketrains
+        spiketimes_col: The column containing spiketimes
+        spiketrain_col: The column containing spiketrain identifiers
+    Returns:
+        A list of dictionarys of the form {spiketrain_id: spiketimes_array}
+    """
+    return [
+        {d[spiketrain_col]: d[spiketimes_col]}
+        for d in df.groupby(spiketrain_col)[spiketimes_col]
+        .apply(np.array)
+        .reset_index()
+        .to_dict(orient="records")
+    ]
+
+
+def df_to_list(
+    df: pd.core.frame.DataFrame,
+    spiketimes_col: str = "spiketimes",
+    spiketrain_col: str = "spiketrain",
+):
+    """
+    Convert a DataFrame of spiketimes to a list spiketrains.
+
+    Args:
+        df: A pandas DataFrame of spiketimes indexed by spiketrains
+        spiketimes_col: The column containing spiketimes
+        spiketrain_col: The column containing spiketrain identifiers
+    Returns:
+        spiketrain_IDs, spiketrain_list
+    """
+    grouped = df.groupby(spiketrain_col)[spiketimes_col].apply(np.array)
+    return grouped.index.values, grouped.tolist()

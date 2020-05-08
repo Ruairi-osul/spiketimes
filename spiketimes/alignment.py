@@ -1,25 +1,20 @@
 import numpy as np
 import pandas as pd
+from .binning import which_bin
 
 
-def align_to(
+def _align_to(
     to_be_aligned: np.ndarray, to_align_to: np.ndarray, no_beyond: bool = False
 ):
     """
-    Align to_be_aligned to to_align_to.
-    For each element in to_be aligned, find the closest element in to_align_to with a lower value.
-    Returns np.nan for elements in to_be_aligned smaller than the smallest element in to_be_aligned
-    Optionally specify no_beyond. If specified, sets all elements in to_be_aligned larger than to_align_to
-    equal to np.nan
+    Align one array to another. Only allows to next smallest event.
 
     Args:
-        to_be_aligned: an np.ndarray to align
-        to_align_to: an np.ndarray of events to align to
-        no_beyond: if True, returns np.nan for each event in to_be_aligned
-                   occuring after the last event in to_align_to
-    
+        to_be_aligned: A numpy array to align
+        to_align_to: A numpy to align to (events)
+        no_beyond: If True, returns NaN for elements occuring after the maximum element in to_align_to
     Returns:
-        a np.ndarray of to_be_aligned aligned to to_align_to
+        A numpy array of aligned data
     """
 
     if isinstance(to_be_aligned, pd.core.series.Series):
@@ -61,23 +56,16 @@ def align_to(
     return aligned_data
 
 
-def negative_align(to_be_aligned, to_align_to, no_before=False):
+def _negative_align(to_be_aligned, to_align_to, no_before=False):
     """
-    Negatively align each element in to_be_aligned to to_align_to.
-    For each element in to_be_aligned, the latency between it and the closest
-    larger element in to_aligned_to is returned.
+    Align one array to another. Algins to next largest event.
 
-    Optionally return nan for elements in to_be_aligned occuring before the
-    first element in to_align_to
-    
     Args:
-        to_be_aligned: an np.ndarray to align
-        to_align_to: an np.ndarray of events to align to
-        no_before: if True, returns np.nan for each event in to_be_aligned
-                   occuring before the first event in to_align_to
-    
+        to_be_aligned: A numpy array to align
+        to_align_to: A numpy to align to (events)
+        no_beyond: If True, returns NaN for elements occuring after the maximum element in to_align_to
     Returns:
-        a np.ndarray of to_be_aligned aligned to to_align_to 
+        A numpy array of aligned data
     """
 
     if isinstance(to_be_aligned, pd.core.series.Series):
@@ -128,25 +116,26 @@ def align_around(
     drop=False,
 ):
     """
-    Aligns one array to another. Elements will be negativly aligned if they
-    occur at or less than t_before
+    Align one array to another.
+
+    Useful for aligning data to events. Default behaviour is to align to closest smaller
+    event. If t_before is specified
 
     Args:
-        to_be_aligned: an np.ndarray containing data to be aligned
-        to_align_to: a np.ndarray containing data to align to
-        t_before: events occuring t_before or less before an event will be
-                  negatively aligned to that event. Should be positive.
-        max_latency: latencies above this threshold will be returned as nan
-        drop: whether to return only non nan element of 
-
+        to_be_aligned: A numpy array to align
+        to_align_to: A numpy to align to (events)
+        t_before: The time window before each aligning event.
+        max_latency: Maximum aligned latency. Latencies above this threshold will be returned as NaN
+        drop: Whether to drop NaN elements of the aligned array
     Returns:
-        a numpy array of to_be_aligned aligned to to_align_to
+        A numpy array of aligned data
     """
-    # TODO: compare to approach used by df compare pos to neg and maybe switch
-    postive_latencies = align_to(to_be_aligned, to_align_to, no_beyond=False)
+    postive_latencies = _align_to(to_be_aligned, to_align_to, no_beyond=False)
 
     if t_before is not None:
-        negative_latencies = negative_align(to_be_aligned, to_align_to, no_before=False)
+        negative_latencies = _negative_align(
+            to_be_aligned, to_align_to, no_before=False
+        )
         latencies = np.where(
             (negative_latencies >= (t_before * -1)),
             negative_latencies,
@@ -161,3 +150,29 @@ def align_around(
     if drop:
         latencies = latencies[np.logical_not(np.isnan(latencies))]
     return latencies
+
+
+def split_by_trial(
+    spiketrain: np.ndarray,
+    trial_starts: np.ndarray,
+    max_latency: bool = None,
+    before: float = None,
+):
+    """
+    Splits a spiketrain into a list of spiketrains by trial.
+
+    Args:
+        to_be_aligned: A numpy array to align
+        to_align_to: A numpy to align to (events)
+        t_before: The time window before each aligning event.
+        max_latency: Maximum aligned latency. Latencies above this threshold will be returned as NaN
+    Returns:
+        A list of numpy arrays of spiketimes in seconds
+    """
+    idx, val = which_bin(
+        spiketrain, trial_starts, max_latency=max_latency, before=before
+    )
+    return [
+        spiketrain[idx == x] - val[idx == x]
+        for x in np.unique(idx[np.logical_not(np.isnan(idx))])
+    ]

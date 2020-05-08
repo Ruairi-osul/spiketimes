@@ -1,54 +1,56 @@
 import pandas as pd
 import numpy as np
+import spiketimes.df.binning
 
 
-def create_baseline_df(
-    df, timepoint_cutoff_max, timepoint_cutoff_min=None, timepoint_colname="timepoint"
+def zscore_standardise_by(
+    df: pd.core.frame.DataFrame,
+    baseline_start_stop: np.ndarray,
+    spiketrain_col: str = "spiketrain",
+    time_col: str = "time",
+    data_col: str = "spike_count",
+    returned_colname: str = "zscore",
 ):
-    """Given a tidy spike dataframe, will return a df of the baseline period"""
-    if timepoint_cutoff_min:
-        return df.loc[
-            (df[timepoint_colname] >= timepoint_cutoff_min)
-            & (df[timepoint_colname] < timepoint_cutoff_max)
-        ].pipe(lambda x: x)
-    return df.loc[df[timepoint_colname] < timepoint_cutoff_max]
+    """
+    For each spiketrain, convert a data column to zscores using only data from the baseline period.
 
-
-def _mean_std(df, col_to_act_on):
-    return pd.Series(
-        {"mean": np.mean(df[col_to_act_on]), "std": np.std(df[col_to_act_on])}
+    Args:
+        df: A pandas DataFrame containing multiple data points per spiketrain
+        baseline_start_stop: A numpy array containing the starting and ending time of the baseline
+                             period.
+        spiketrain_col: The column containing spiketrain identifiers
+        time_col: The column containing time points
+        data_col: The column containing data to be zscore standardised
+        returned_colname:
+    Returns:
+        A copy of the passed DataFrame with an additional column containing zscores
+    """
+    dfb = _create_baseline_df(
+        df, baseline_start_stop, data_col="spike_count", time_col="time"
     )
-
-
-def zscore_normalise_by_neuron(
-    df,
-    timepoint_cutoff_max,
-    timepoint_cutoff_min=None,
-    col_to_act_on="firing_rate",
-    timepoint_colname="timepoint",
-    neuron_id_colname="neuron_id",
-    new_colname="zscore",
-):
-    # create baseline df
-    dfn = create_baseline_df(
-        df,
-        timepoint_cutoff_max=timepoint_cutoff_max,
-        timepoint_cutoff_min=timepoint_cutoff_min,
-        timepoint_colname=timepoint_colname,
-    )
-    # get sd and mean
-    dfn = (
-        dfn.groupby(neuron_id_colname)
-        .apply(_mean_std, col_to_act_on=col_to_act_on)
+    dfb = (
+        dfb.groupby(spiketrain_col)
+        .apply(
+            lambda x: pd.Series({"mean": x[data_col].mean(), "std": x[data_col].std()})
+        )
         .reset_index()
     )
+    df = pd.merge(df, dfb, on="spiketrain")
+    return df.assign(
+        **{returned_colname: df[data_col].subtract(df["mean"]).divide(df["std"])}
+    ).drop(["mean", "std"], axis=1)
 
-    # join with original
-    df = pd.merge(dfn, df, on=neuron_id_colname)
 
-    # mutate for final
-    df = df.assign(temp=(df[col_to_act_on].subtract(df["mean"])).divide(df["std"]))
-    df.drop(["mean", "std"], axis=1, inplace=True)
-    df.rename(columns={"temp": new_colname}, inplace=True)
-    return df
-
+def _create_baseline_df(df, baseline_start_stop: np.ndarray, data_col, time_col="time"):
+    """
+    Subset a pandas DataFrame to contain only data from the baseline period.
+    """
+    df = (
+        spiketimes.df.binning.which_bin(
+            df=df, spiketimes_col=time_col, bin_edges=baseline_start_stop
+        )
+        .drop("bin_values", axis=1)
+        .rename(columns={"bin_idx": "is_baseline"})
+    )
+    df["is_baseline"] = df["is_baseline"].map({0: 1, 1: 0})
+    return df[df["is_baseline"] == 1].drop("is_baseline", axis=1)

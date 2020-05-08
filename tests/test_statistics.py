@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from pathlib import Path
-from spiketimes.simulate import homogenous_poisson_process
+from spiketimes.simulate import homogeneous_poisson_process
 from spiketimes.surrogates import shuffled_isi_spiketrain
 from spiketimes.statistics import (
     mean_firing_rate,
@@ -21,7 +21,7 @@ class TestMeanFiringRate:
     def test_expected(self):
         rate = 5
         num_secs = 120
-        spiketrain = homogenous_poisson_process(rate=rate, t_stop=num_secs)
+        spiketrain = homogeneous_poisson_process(rate=rate, t_stop=num_secs)
         expected = rate
         actual = mean_firing_rate(spiketrain)
         assert pytest.approx(expected, actual)
@@ -33,7 +33,7 @@ class TestMeanFiringRateIFR:
         rate = 10
         num_secs = 120
         fs = 1
-        spiketrain = homogenous_poisson_process(rate=rate, t_stop=num_secs)
+        spiketrain = homogeneous_poisson_process(rate=rate, t_stop=num_secs)
         expected = rate
         actual = mean_firing_rate_ifr(spiketrain, fs=fs)
         assert pytest.approx(expected, actual)

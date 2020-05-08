@@ -1,111 +1,69 @@
 import pandas as pd
 import numpy as np
 from scipy import stats
-from ..statistics import cross_corr
+import spiketimes.correlate
 
 
 def population_coupling_df(
     df: pd.core.frame.DataFrame,
-    neuron_col: str = "neuron_id",
+    spiketrain_col: str = "spiketrain",
     spiketimes_col: str = "spiketimes",
-    bin_window: float = 0.01,
+    binsize: float = 0.01,
     num_lags: int = 100,
     t_start: float = None,
     t_stop: float = None,
+    return_all: bool = False,
 ):
     """
-    Given a pandas.DataFrame containing spikeing data of simultaneous spiking neurons,
-    for each neuron, calculates a metric of population spike coupling. The metric is 
-    calculated by calculating and zscore standardising cross correlation between an individual
-    spike train and the merged spiketrain of all other neurons. Large Z score cross correlation
-    at lag=0 is indicative of high population coupling.
+    Calculate the population-coupling index between each spiketrain and all others in a DataFrame.
 
-    params:
-        df: pandas.DataFrame containing the spikeing data
-        neuron_col: label of column containing neuron identifiers
-        spiketimes_col: label of column containing spiketimes in seconds
-        bin_window: size of time bin used in cross correlation in seconds
-        num_lags: the number of labs to calculate cross correlation around 0
-        t_start: the time after cross correlation will be calculated
-        t_stop: the time before which cross correlation will be calculated
+    The metric is calculated by computing and standardising cross correlation
+    between an individual spiketrain and the "population spiketrain", consisting of all other neurons.
+    Large Z score cross correlation at lag=0 is indicative of high population coupling.
 
-    returns:
-        a pandas.DataFrame containing columns labelled {neuron_col, "time_sec", "zscore"}  
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        spiketrain_col: The column containing spiketimes
+        spiketimes_col: The column containing spiketrain identifiers
+        binsize: The size of the time bin in seconds
+        num_lags: The number of lags forward and backwards around lag 0 to return
+        t_start: Minimum timepoint
+        t_stop: Maximum timepoint
+        return_all: If true, all time bins and cross correlation values are returned
+    Returns:
+        A pandas DataFrame containing one row per spiketrain with columns {spiketrain_col, 'population_coupling'}
     """
     ROUNDING_PRECISION = 5
     FRAC_TO_COMPARE = 4
 
     bin_idx_to_start = ((num_lags * 2) + 1) // FRAC_TO_COMPARE
-    frames: list = []
-    neurons = df[neuron_col].unique()
-    for neuron in neurons:
-        neuron_spiketrain = df[df[neuron_col] == neuron][spiketimes_col].values
+    out: list = []
+    spiketrains = df[spiketrain_col].unique()
+    for spiketrain in spiketrains:
+        spiketrain_oi = df[df[spiketrain_col] == spiketrain][spiketimes_col].values
         population_spiketrain = np.sort(
-            df[df[neuron_col] != neuron][spiketimes_col].values
+            df[df[spiketrain_col] != spiketrain][spiketimes_col].values
         )
-        t, cc = cross_corr(
-            spiketrain_1=neuron_spiketrain,
+        t, cc = spiketimes.correlate.cross_corr(
+            spiketrain_1=spiketrain_oi,
             spiketrain_2=population_spiketrain,
-            bin_window=bin_window,
+            binsize=binsize,
             num_lags=num_lags,
             as_df=False,
             t_start=t_start,
             t_stop=t_stop,
             delete_0_lag=False,
         )
-        z = stats.zmap(cc, cc[bin_idx_to_start:])
+        z = stats.zmap(cc, cc[:bin_idx_to_start])
         t = np.round(t, ROUNDING_PRECISION)
-        df_out = pd.DataFrame({"time_sec": t, "zscore": z, neuron_col: neuron})
-        frames.append(df_out)
-    df = pd.concat(frames, axis=0)
-    return df
-
-
-def population_coupling_df_by(
-    df: pd.core.frame.DataFrame,
-    neuron_col: str = "neuron_id",
-    spiketimes_col: str = "spiketimes",
-    by_col: str = "session_name",
-    bin_window: float = 0.001,
-    num_lags: int = 400,
-    t_start: float = None,
-    t_stop: float = None,
-):
-    """    
-    Given a pandas.DataFrame containing spikeing data of multiple neurons, grouped by some variable,
-    within each group, for each neuron, calculates a metric of population spike coupling. 
-    The metric is  calculated by calculating and zscore standardising cross correlation 
-    between an individual spike train and the merged spiketrain of all other neurons. 
-    Large Z score cross correlation at lag=0 is indicative of high population coupling.
-
-    params:
-        df: pandas.DataFrame containing the spikeing data
-        neuron_col: label of column containing neuron identifiers
-        spiketimes_col: label of column containing spiketimes in seconds
-        by_col: label of column indicating group member ship. All neurons within one group
-                should be simultaneously recorded for the metric to be meaningful.
-        bin_window: size of time bin used in cross correlation in seconds
-        num_lags: the number of labs to calculate cross correlation around 0
-        t_start: the time after cross correlation will be calculated
-        t_stop: the time before which cross correlation will be calculated
-
-    returns:
-        a pandas.DataFrame containing columns labelled {neuron_col, "time_sec", "zscore"}  
-    """
-    return (
-        df.groupby(by_col)
-        .apply(
-            lambda x: population_coupling_df(
-                x,
-                neuron_col=neuron_col,
-                spiketimes_col=spiketimes_col,
-                bin_window=bin_window,
-                num_lags=num_lags,
-                t_start=t_start,
-                t_stop=t_stop,
+        if return_all:
+            out.append(
+                pd.DataFrame({"time_sec": t, "zscore": z, spiketrain_col: spiketrain})
             )
-        )
-        .reset_index()
-        .drop("level_1", axis=1)
-    )
-
+        else:
+            out.append(z[t == 0])
+    if return_all:
+        df = pd.concat(out, axis=0)
+    else:
+        df = pd.DataFrame({spiketrain_col: spiketrains, "population_coupling": out})
+    return df

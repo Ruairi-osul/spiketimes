@@ -1,9 +1,12 @@
-from spiketimes.simulate import homogenous_poisson_process, imhomogenous_poisson_process
+from spiketimes.simulate import (
+    homogeneous_poisson_process,
+    imhomogeneous_poisson_process,
+)
 import numpy as np
 import pytest
 
 
-class TestHomogenous:
+class Testhomogeneous:
     def test_num_output_samples(self):
         rate = 4
         n_time_units = 30
@@ -13,7 +16,7 @@ class TestHomogenous:
             np.mean(
                 np.array(
                     [
-                        len(homogenous_poisson_process(rate, n_time_units))
+                        len(homogeneous_poisson_process(rate, n_time_units))
                         for _ in range(n_bootstrap_replicates)
                     ]
                 )
@@ -23,11 +26,11 @@ class TestHomogenous:
 
     def test_output_shape(self):
         expected = 1
-        actual = int(len(homogenous_poisson_process(4, 10, 0).shape))
+        actual = int(len(homogeneous_poisson_process(4, 10, 0).shape))
         assert actual == expected
 
 
-class TestImhomogenous:
+class TestImhomogeneous:
     def test_num_output_samples(self):
         time_1 = 30
         time_2 = 20
@@ -40,7 +43,7 @@ class TestImhomogenous:
             np.mean(
                 np.array(
                     [
-                        len(imhomogenous_poisson_process(time_rate))
+                        len(imhomogeneous_poisson_process(time_rate))
                         for _ in range(n_bootstrap_replicates)
                     ]
                 )
@@ -50,5 +53,5 @@ class TestImhomogenous:
 
     def test_output_shape(self):
         expected = 1
-        actual = len(imhomogenous_poisson_process([(1, 2), (2, 1)]).shape)
+        actual = len(imhomogeneous_poisson_process([(1, 2), (2, 1)]).shape)
         assert actual == expected

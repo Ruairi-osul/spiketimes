@@ -1,6 +1,11 @@
-import random
 import numpy as np
+import random
 from scipy.stats import poisson
+
+
+def _isi(spiketrain: np.ndarray):
+    "returns the inter-spike-intervals of a spiketrain"
+    return np.diff(np.sort(spiketrain))
 
 
 def _random_combination(iterable, r):
@@ -12,16 +17,15 @@ def _random_combination(iterable, r):
 
 
 def p_adjust(pvalues: np.ndarray, method="Benjamini-Hochberg"):
-    """                                                                                                   
+    """
     Adjust p values for multiple comparisons using various methods
 
-    params:
-        pvalues: numpy array of pvalues from various comparisons
-        method: p value correction method. Set of availible methods
+    Args:
+        pvalues: A numpy array of pvalues from various comparisons
+        method: The p value correction method. Set of availible methods
                 comprise {'Bonferroni', 'Bonferroni-Holm', 'Benjamini-Hochberg'}
-
-    returns:
-        numpy array of adjusted pvalues 
+    Returns:
+        A numpy array of adjusted pvalues
     """
 
     n = pvalues.shape[0]

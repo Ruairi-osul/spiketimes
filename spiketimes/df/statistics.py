@@ -1,119 +1,264 @@
 import pandas as pd
 import numpy as np
-from ..statistics import cv_isi, cv2_isi
+import spiketimes
+import spiketimes.statistics
+from .binning import binned_spiketrain
 
 
-def mean_firing_rate_ifr_by_neuron(
-    df: pd.core.frame.DataFrame, neuron_col: str = "neuron_id", ifr_col: str = "ifr"
+def mean_firing_rate_by(
+    df: pd.core.frame.DataFrame,
+    spiketimes_col: str = "spiketimes",
+    spiketrain_col: str = "spiketrain",
+    t_start: float = None,
+    t_stop: float = None,
 ):
     """
-    Given a dataframe of intantaneous firing rates of many neurons, calculates the 
-    mean firing rate of each neuron
+    Estimate the mean firing rate of each spiketrain.
 
-    params:
-        df: the df containg the data
-        neuron_col: label for the column containing neuron ids
-        ifr_col: label for the column containing the ifr values
+    Firing rate caluclated by summing spikes and dividing by total time.
 
-    returns:
-        a pd.DataFrame containing with columns {neuron_id, mean_firing_rate} 
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        spiketimes_col: The label of the column containing spiketimes
+        spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+        t_start: Time point at which to start. Defaults to time of first spike in df.
+        t_stop: Maximum timepoint. Defaults to last spike in df.
+    Returns:
+        A DataFrame containing mean firing rate by neuron
     """
-
+    if t_start is None:
+        t_start = df[spiketimes_col].min()
+    if not t_stop:
+        t_stop = df[spiketimes_col].min()
     return (
-        df.groupby(neuron_col)
-        .apply(lambda x: mean_firing_rate_ifr(x, ifr_col=ifr_col))
+        df.groupby(spiketrain_col)
+        .apply(
+            lambda x: spiketimes.statistics.mean_firing_rate(
+                x[spiketimes_col].values, t_start=t_start, t_stop=t_stop,
+            )
+        )
         .reset_index()
         .rename(columns={0: "mean_firing_rate"})
     )
 
 
-def mean_firing_rate_ifr(df: pd.core.frame.DataFrame, ifr_col: str = "ifr"):
-    """
-    Given a dataframe containing a instantaneous firing rate column,
-    calculates the spiketrain's mean firing rate
-
-    params:
-        df: dataframe containing the data
-        ifr_col: column containing  instantaneous firing rate estimates
-    returns:
-        a scaler of mean firing rate
-    """
-    return df[ifr_col].mean()
-
-
-def cv_isi_by_neuron(
+def ifr_by(
     df: pd.core.frame.DataFrame,
+    fs: float = 1,
+    sigma: float = None,
     spiketimes_col: str = "spiketimes",
-    neuron_col: str = "neuron_id",
+    spiketrain_col: str = "spiketrain",
+    t_start: float = None,
+    t_stop: float = None,
 ):
     """
-    Given a dataframe containing spiketimes indexed by neuron,
-    calculates the coefficient of variation of inter-spike-intervals
-    for each neuron. CV_ISI can be used as a metric of regularity of spiking.
+    Estimate firing rate for each spiketrain at a regular sampling rate.
 
-    params:
-        df: the dataframe containing the data
-        spiketimes_col: label of column containing spiketimes
-        neuron_col: label of column indexes the neuron responsible 
-                    for the spike
-    returns:
-        a dataframe with columns neuron_col and cv_isi
+    Args:
+        df: A pandas DataFrame containing the spikes data
+        fs: The sampling rate at which to estimate firing rate
+        sigma: Hypterparameter controlling smoothing for firing rate estimates
+        spiketimes_col: The label of the column in df containing spiketimes
+        spiketrain_col: The label of the column in df containing spiketrain idendifiers
+                        (which spiketrain was responsible for the spike)
+        t_start: Time point at which to start firing rate estimates. Defaults to time of first spike in df.
+        t_stop: Time point of maximum firing rate estimate. Defaults to last spike in df.
+    Returns:
+        A pandas DataFrame with one row per timepoint per spiketrain with column `ifr` identifying
+        firing rate estimates.
+    """
+    if t_start is None:
+        t_start = df[spiketimes_col].min()
+    if not t_stop:
+        t_stop = df[spiketimes_col].max()
+    return (
+        df.groupby(spiketrain_col)
+        .apply(
+            lambda x: spiketimes.statistics.ifr(
+                x[spiketimes_col].values,
+                fs=fs,
+                sigma=sigma,
+                t_start=t_start,
+                t_stop=t_stop,
+                as_df=True,
+            )
+        )
+        .reset_index()
+        .drop("level_1", axis=1)
+    )
+
+
+def mean_firing_rate_ifr_by(
+    df: pd.core.frame.DataFrame,
+    fs: float = 1,
+    sigma: float = None,
+    spiketimes_col: str = "spiketimes",
+    spiketrain_col: str = "spiketrain",
+    exclude_below: float = None,
+    t_start: float = None,
+    t_stop: float = None,
+):
+    """
+    Estimate mean firing rate of each neuron by first estimating firing rate at a regular interval
+    and then taking the median.
+
+    Args:
+        df: A pandas Dataframe containing the spike data
+        fs: The sampling rate at which to estimate firing rate
+        sigma: Parameter contolling smoothing level of firing rate estiamtes.
+        exclude_below: If specified, firing rates below this value will not be included in the median calculation.
+        spiketimes_col: The label of the column containing the spiketimes
+        spiketrain_col: The label of the column in df containing spiketrain idendifiers
+                        (which spiketrain was responsible for the spike)
+        t_start: Time point at which to start firing rate estimates. Defaults to time of first spike in df.
+        t_stop: Time point of maximum firing rate estimate. Defaults to last spike in df.
+    Returns:
+        A pandas DataFrame containing one row per spiketrain as well as its firing rate estimate.
+    """
+
+    return (
+        df.groupby(spiketrain_col)
+        .apply(
+            lambda x: spiketimes.statistics.mean_firing_rate_ifr(
+                x[spiketimes_col].values,
+                fs=fs,
+                sigma=sigma,
+                exclude_below=exclude_below,
+            )
+        )
+        .reset_index()
+        .rename(columns={0: "mean_firing_rate_ifr"})
+    )
+
+
+def cv_isi_by(
+    df: pd.core.frame.DataFrame,
+    spiketimes_col: str = "spiketimes",
+    spiketrain_col: str = "spiketrain",
+):
+    """
+    Calculate the coefficient of variation of interspike intervals for each spiketrain in a DataFrame.
+
+    The cv_isi is a metric of spike regularity. Values near 1 are typical of poisson processes. Values near 0
+    indicate very regular processes.
+
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        spiketimes_col: The label of the column containing spiketimes
+        spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+    Returns:
+        A DataFrame containing cv_isi by neuron
     """
     return (
-        df.groupby(neuron_col)
-        .apply(lambda x: cv_isi(x[spiketimes_col].values))
+        df.groupby(spiketrain_col)
+        .apply(lambda x: spiketimes.statistics.cv_isi(x[spiketimes_col].values))
         .reset_index()
         .rename(columns={0: "cv_isi"})
     )
 
 
-def cv2_isi_by_neuron(
+def cv2_isi_by(
     df: pd.core.frame.DataFrame,
     spiketimes_col: str = "spiketimes",
-    neuron_col: str = "neuron_id",
+    spiketrain_col: str = "spiketrain",
 ):
     """
-    Given a dataframe containing spiketimes indexed by neuron,
-    calculates the cv2 of interspike intervals for each neuron. 
-    CV2_ISI can be used as a metric of regularity of spiking.
+    Calculate cv2 of interspike intervals of each spiketrain.
 
-    params:
-        df: the dataframe containing the data
-        spiketimes_col: label of column containing spiketimes
-        neuron_col: label of column indexes the neuron responsible 
-                    for the spike
-    returns:
-        a dataframe with columns neuron_col and cv2_isi
+    cv2 is a metric related to the coefficient of variation. It is adapted to be suitable long-period spiketrains.
+
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        spiketimes_col: The label of the column containing spiketimes
+        spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+    Returns:
+        A DataFrame containing cv2_isi by neuron
     """
     return (
-        df.groupby(neuron_col)
-        .apply(lambda x: cv2_isi(x[spiketimes_col].values))
+        df.groupby(spiketrain_col)
+        .apply(lambda x: spiketimes.statistics.cv2_isi(x[spiketimes_col].values))
         .reset_index()
         .rename(columns={0: "cv2_isi"})
     )
 
 
-def fraction_silent_by_neuron(
+def fraction_silent_by(
     df: pd.core.frame.DataFrame,
-    bool_col: str = "has_spike",
-    neuron_col: str = "neuron_id",
+    binsize: float = 1,
+    silent_threshold: float = 0.5,
+    spiketimes_col: str = "spiketimes",
+    spiketrain_col: str = "spiketrain",
+    t_start: float = None,
+    t_stop: float = None,
 ):
     """
-    Given a df containing a column identifying neurons and a boolean column
-    refering to whether a spike occured, calculates the fraction of bins containing
-    a spike
+    Estimate the fraction of time a spiketrain was inactivate.
 
-    params:
-        df: df containing the data
-        bool_col: 
+    Estimate calculated by binning spikes into time bins and calculating the proportion of spikes falling below
+    a specified threshold.
 
-    returns:
-        a pandas dataframe containing columns {neuron_col, fraction_silent} 
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        binsize: The time period in seconds to use when binning spikes.
+        spiketimes_col: The label of the column containing spiketimes
+        spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+        t_start: Time point at which to start. Defaults to time of first spike in df.
+        t_stop: Maximum timepoint. Defaults to last spike in df.
+    Returns:
+        A pandas DataFrame containing fraction silent estimates by neuron.
     """
+    fs = 1 / binsize
     return (
-        df.groupby(neuron_col)
-        .apply(lambda x: np.mean(x[bool_col]))
+        binned_spiketrain(
+            df,
+            spiketimes_col=spiketimes_col,
+            spiketrain_col=spiketrain_col,
+            fs=fs,
+            t_start=t_start,
+            t_stop=t_stop,
+        )
+        .groupby(spiketrain_col)
+        .apply(lambda x: np.mean(x["spike_count"] > silent_threshold))
         .reset_index()
         .rename(columns={0: "fraction_silent"})
     )
 
+
+def auc_roc_test_by(
+    df: pd.core.frame.DataFrame,
+    n_boot: int = 1000,
+    return_distance_from_chance: bool = False,
+    spikecount_col: str = "spike_count",
+    spiketrain_col: str = "spiketrain",
+    condition_col: str = "cond",
+):
+    """
+    Calculates the Area Under the Receiver Operating Characteristic Curve of spike counts for each spiketrain.
+
+    The AUCROC can be used as a metric of the separability of two distrobutions. Each spiketrain must have been recorded
+    in both conditions during multiple trials. Significance tested using a permutation test.
+
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        n_boot: The number of permutation replicates to draw.
+        spiketimes_col: The label of the column containing spiketimes
+        spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+        return_distance_from_chance: If True, returns distance from 0.5
+    Returns:
+        A pandas DataFrame containing one row per spiketrain with columns {'spiketrain', 'AUCROC', 'p'}
+    """
+    return (
+        df.groupby(spiketrain_col)
+        .apply(
+            lambda x: pd.Series(
+                spiketimes.statistics.auc_roc_test(
+                    x[spikecount_col].values,
+                    x[condition_col].values,
+                    n_boot=n_boot,
+                    return_distance_from_chance=return_distance_from_chance,
+                )
+            )
+        )
+        .reset_index()
+        .rename(columns={0: "AUCROC", 1: "p"})
+    )
