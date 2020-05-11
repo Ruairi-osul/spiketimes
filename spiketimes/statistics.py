@@ -32,7 +32,7 @@ def ifr(
         return np.nan
 
     if t_start is None:
-        t_start = np.max(spiketrain)
+        t_start = np.min(spiketrain)
     if t_stop is None:
         t_stop = np.max(spiketrain)
     df = binned_spiketrain(spiketrain, fs, t_stop=t_stop, t_start=t_start, as_df=True)
@@ -78,12 +78,16 @@ def mean_firing_rate(
     if len(spiketrain) <= 3:
         return np.nan
     if t_start is None:
-        t_start = spiketrain[0]
+        t_start = np.min(spiketrain)
     if t_stop is None:
-        t_stop = spiketrain[-1]
+        t_stop = np.max(spiketrain)
 
     total_spikes = len(spiketrain)
     total_time = t_stop - t_start
+    print(total_spikes)
+    print(total_time)
+    print(t_start)
+    print(t_stop)
 
     return total_spikes / total_time
 
@@ -118,9 +122,9 @@ def mean_firing_rate_ifr(
     if len(spiketrain) <= 3:
         return np.nan
     if t_start is None:
-        t_start = spiketrain[0]
+        t_start = np.min(spiketrain)
     if t_stop is None:
-        t_stop = spiketrain[-1]
+        t_stop = np.max(spiketrain)
 
     _, ifr_ = ifr(
         spiketrain, fs=fs, sigma=sigma, t_start=t_start, t_stop=t_stop, as_df=False
