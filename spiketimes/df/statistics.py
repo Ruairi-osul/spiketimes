@@ -29,7 +29,7 @@ def mean_firing_rate_by(
     if t_start is None:
         t_start = df[spiketimes_col].min()
     if not t_stop:
-        t_stop = df[spiketimes_col].min()
+        t_stop = df[spiketimes_col].max()
     return (
         df.groupby(spiketrain_col)
         .apply(
@@ -115,7 +115,10 @@ def mean_firing_rate_ifr_by(
     Returns:
         A pandas DataFrame containing one row per spiketrain as well as its firing rate estimate.
     """
-
+    if t_start is None:
+        t_start = df[spiketimes_col].min()
+    if not t_stop:
+        t_stop = df[spiketimes_col].max()
     return (
         df.groupby(spiketrain_col)
         .apply(
@@ -207,6 +210,10 @@ def fraction_silent_by(
     Returns:
         A pandas DataFrame containing fraction silent estimates by neuron.
     """
+    if t_start is None:
+        t_start = df[spiketimes_col].min()
+    if not t_stop:
+        t_stop = df[spiketimes_col].max()
     fs = 1 / binsize
     return (
         binned_spiketrain(
