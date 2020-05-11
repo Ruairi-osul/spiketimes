@@ -84,10 +84,6 @@ def mean_firing_rate(
 
     total_spikes = len(spiketrain)
     total_time = t_stop - t_start
-    print(total_spikes)
-    print(total_time)
-    print(t_start)
-    print(t_stop)
 
     return total_spikes / total_time
 
