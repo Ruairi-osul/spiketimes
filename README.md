@@ -2,6 +2,7 @@
 
 spiketimes is a small python package for analysing electrophysiology data.
 
+[Read more on the documentation](https://spiketimes.readthedocs.io/en/latest/index.html)
 
 ## Installation
 
