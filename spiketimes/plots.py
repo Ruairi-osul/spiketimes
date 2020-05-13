@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import numpy as np
+import warnings
 from .alignment import align_around, split_by_trial
 
 
@@ -81,8 +82,15 @@ def raster(
             for spikes in spiketrain_list
         ]
     if isinstance(spiketrain_list, list):
-        for i, spikes in enumerate(spiketrain_list):
-            ax = _raster(spikes, ax=ax, y_data_ind=i + _starting_ytick, **kwargs)
+        i = 0
+        for spikes in spiketrain_list:
+            if len(spikes):
+                ax = _raster(spikes, ax=ax, y_data_ind=i + _starting_ytick, **kwargs)
+                i += 1
+            else:
+                warnings.warn(
+                    "A spiketrain with no spikes in the plotting window was passed, skipping."
+                )
     else:
         raise ValueError("Must pass in a list of spike times")
 
