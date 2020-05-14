@@ -248,8 +248,9 @@ def auc_roc_test_by(
     Args:
         df: A pandas DataFrame containing spiketimes indexed by spiketrain
         n_boot: The number of permutation replicates to draw.
-        spiketimes_col: The label of the column containing spiketimes
+        spikecount_col: The label of the column containing spikecounts
         spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+        condition_col: A categorical column containing 0 for the baseline condition and 1 for the experimental condition
         return_distance_from_chance: If True, returns distance from 0.5
     Returns:
         A pandas DataFrame containing one row per spiketrain with columns {'spiketrain', 'AUCROC', 'p'}
@@ -268,4 +269,39 @@ def auc_roc_test_by(
         )
         .reset_index()
         .rename(columns={0: "AUCROC", 1: "p"})
+    )
+
+
+def diffmeans_test_by(
+    df: pd.core.frame.DataFrame,
+    n_boot: int = 1000,
+    return_distance_from_chance: bool = False,
+    spikecount_col: str = "spike_count",
+    spiketrain_col: str = "spiketrain",
+    condition_col: str = "cond",
+):
+    """
+    Calculates the difference between means of spike counts for each spike in a data frame and also tests
+    significance using a permutation test.
+
+    Args:
+        df: A pandas DataFrame containing spiketimes indexed by spiketrain
+        n_boot: The number of permutation replicates to draw.
+        spikecount_col: The label of the column containing spikecounts
+        spiketrain_col: The label of the column identifying the spiketrain responsible for the spike
+        condition_col: A categorical column containing 0 for the baseline condition and 1 for the experimental condition
+    Returns:
+        A pandas DataFrame containing one row per spiketrain with columns {'spiketrain', 'diff_of_means', 'p'}
+    """
+    return (
+        df.groupby(spiketrain_col)
+        .apply(
+            lambda x: pd.Series(
+                spiketimes.statistics.diffmeans_test(
+                    x[spikecount_col].values, x[condition_col].values, n_boot=n_boot,
+                )
+            )
+        )
+        .reset_index()
+        .rename(columns={0: "diff_of_means", 1: "p"})
     )

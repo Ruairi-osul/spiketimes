@@ -4,7 +4,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.stats import variation, zmap
 from sklearn.metrics import roc_auc_score
 from .binning import binned_spiketrain
-from mlxtend.evaluate import permutation_test
+import mlxtend.evaluate
 
 
 def ifr(
@@ -244,6 +244,39 @@ def zscore_standardise(to_standardise: np.ndarray, baseline: np.ndarray):
     return zmap(to_standardise, baseline)
 
 
+def diffmeans_test(
+    spike_counts: np.ndarray, which_condition: np.ndarray, n_boot: int = 1000,
+):
+    """
+    Calculates the difference between means of spike counts and tests significance using a permutation test.
+
+    Args:
+        spike_counts: A numpy array containing spike counts from both conditions
+        which_condition: A numpy array indicating the condition of each spike count entry. 0s for the first condition,
+                         and 1s for the second condition. For example, if the first two elements
+                         in spike_counts were from the first condition and the third element from the second
+                         condition, which_condition would contain [0, 0, 1]
+                         1 is subtracted from 2 in the difference calculation.
+        n_boot: The number of bootstrap replicates to draw
+    Returns:
+        Difference of means, p
+    """
+    c1 = spike_counts[which_condition == 0]
+    c2 = spike_counts[which_condition == 1]
+    observed = c2.mean() - c1.mean()
+    p = mlxtend.evaluate.permutation_test(
+        c1, c2, func=_diffmeans_1d, method="approximate", num_rounds=n_boot,
+    )
+    return observed, p
+
+
+def _diffmeans_1d(arr1, arr2):
+    """
+    Calculate the absolute values of the difference between means of two arrays.
+    """
+    return np.abs(arr2.mean() - arr1.mean())
+
+
 def auc_roc_test(
     spike_counts: np.ndarray,
     which_condition: np.ndarray,
@@ -263,6 +296,7 @@ def auc_roc_test(
                          and 1s for the second condition. For example, if the first two elements
                          in spike_counts were from the first condition and the third element from the second
                          condition, which_condition would contain [0, 0, 1]
+        n_boot: The number of bootstrap replicates to draw
         return_distance_from_chance: If True, returns distance from 0.5
     Returns:
         The AUCROC score, p
@@ -272,7 +306,7 @@ def auc_roc_test(
         score = abs(0.5 - score)
     c1 = spike_counts[which_condition == 0]
     c2 = spike_counts[which_condition == 1]
-    p = permutation_test(
+    p = mlxtend.evaluate.permutation_test(
         c1, c2, func=_aucroc_1d, method="approximate", num_rounds=n_boot,
     )
     return score, p
