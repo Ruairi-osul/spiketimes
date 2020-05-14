@@ -26,7 +26,7 @@ def zscore_standardise_by(
         A copy of the passed DataFrame with an additional column containing zscores
     """
     dfb = _create_baseline_df(
-        df, baseline_start_stop, data_col="spike_count", time_col="time"
+        df, baseline_start_stop, data_col="spike_count", time_col=time_col
     )
     dfb = (
         dfb.groupby(spiketrain_col)

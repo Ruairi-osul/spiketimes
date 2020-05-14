@@ -29,6 +29,8 @@ def ifr(
         time_bins, ifr
     """
     if len(spiketrain) <= 3:
+        if as_df:
+            return pd.DataFrame({"time": [], "ifr": []})
         return np.nan
 
     if t_start is None:
