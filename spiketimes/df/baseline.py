@@ -35,7 +35,7 @@ def zscore_standardise_by(
         )
         .reset_index()
     )
-    df = pd.merge(df, dfb, on="spiketrain")
+    df = pd.merge(df, dfb, on=spiketrain_col)
     return df.assign(
         **{returned_colname: df[data_col].subtract(df["mean"]).divide(df["std"])}
     ).drop(["mean", "std"], axis=1)
