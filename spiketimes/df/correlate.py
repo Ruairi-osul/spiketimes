@@ -25,6 +25,8 @@ def spike_count_correlation(
         binsize: The size of the time bin in seconds
         spiketimes_col: The label of the column containing spiketimes
         spiketrain_col: The label of the column containing spiketrain identifiers
+        min_firing_rate: If selected, selects only bins where the geometric mean
+                         firing rate of the two spiketrains exeedes this value
         t_start: start point for first time bin.
         t_stop: end point for the last time bin.
         use_multiprocessing: Whether to use multiple cores to compute cross correlation.
@@ -110,6 +112,8 @@ def spike_count_correlation_between(
         spiketimes_col: The label of the column containing spiketimes
         spiketrain_col: The label of the column containing spiketrain identifiers
         group_col: The label of the column containing group identifiers
+        min_firing_rate: If selected, selects only bins where the geometric mean
+                         firing rate of the two spiketrains exeedes this value
         t_start: start point for first time bin.
         t_stop: end point for the last time bin.
         use_multiprocessing: Whether to use multiple cores to compute cross correlation.
@@ -214,7 +218,8 @@ def spike_count_correlation_test(
         n_boot: The number of bootstrap replicates to create.
         spiketimes_col: The label of the column containing spiketimes
         spiketrain_col: The label of the column containing spiketrain identifiers
-        group_col: The label of the column containing group identifiers
+        min_firing_rate: If selected, selects only bins where the geometric mean
+                         firing rate of the two spiketrains exeedes this value
         t_start: The start point for first time bin.
         t_stop: The end point for the last time bin.
         tail: Tail for hypothesis test {"two_tailed", "upper", "lower"}. Two tailed reccomended
@@ -318,6 +323,8 @@ def spike_count_correlation_between_test(
         spiketimes_col: The label of the column containing spiketimes
         spiketrain_col: The label of the column containing spiketrain identifiers
         group_col: The label of the column containing group identifiers
+        min_firing_rate: If selected, selects only bins where the geometric mean
+                         firing rate of the two spiketrains exeedes this value
         t_start: The start point for first time bin.
         t_stop: The end point for the last time bin.
         tail: Tail for hypothesis test {"two_tailed", "upper", "lower"}. Two tailed reccomended
