@@ -275,7 +275,6 @@ def auc_roc_test_by(
 def diffmeans_test_by(
     df: pd.core.frame.DataFrame,
     n_boot: int = 1000,
-    return_distance_from_chance: bool = False,
     spikecount_col: str = "spike_count",
     spiketrain_col: str = "spiketrain",
     condition_col: str = "cond",

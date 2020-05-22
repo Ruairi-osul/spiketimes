@@ -39,6 +39,7 @@ def _raster(spiketrain: np.ndarray, ax=None, y_data_ind: int = 1, **kwargs):
 def raster(
     spiketrain_list: list,
     ax=None,
+    skip_empty=True,
     t_start: float = None,
     t_stop: float = None,
     _starting_ytick=None,
@@ -50,8 +51,10 @@ def raster(
     Args:
         spiketrain_list: A list of numpy arrays containing the timings of spiking events
         ax: A matplotlib axes object on which to plot
+        skip_empty: Whether to skip spiketrains with no spikes in the plotting interval 
         t_start: Minimum timepoint
         t_stop: Maximum timepoint
+        _starting_y_tick: The position on the y axis to start. 
         kwargs: Additional key-word arguments will be passed into matplotlib.pyplot.plot
     Returns:
         A matloblib axes object
@@ -91,6 +94,7 @@ def raster(
                 warnings.warn(
                     "A spiketrain with no spikes in the plotting window was passed, skipping."
                 )
+                i += 1 if skip_empty else 0
     else:
         raise ValueError("Must pass in a list of spike times")
 
@@ -102,6 +106,7 @@ def grouped_raster(
     st_lists: list,
     color_list: list = None,
     ax=None,
+    skip_empty=True,
     t_start: float = None,
     t_stop: float = None,
     plot_kwargs=None,
@@ -114,6 +119,7 @@ def grouped_raster(
         st_lists: A list of lists of spiketrains. Each sublist contains one group of spiketrains.
         color_list: A list containing one color for each group to be plotted/
         ax: A matplotlib axes object
+        skip_empty: Whether to skip spiketrains with no spikes in the plotting interval 
         t_start: Minimum timepoint
         t_stop: Maximum timepoint
         plot_kwargs: Additional key-word arguments will be passed into matplotlib.pyplot.plot
