@@ -61,7 +61,7 @@ def population_coupling_df(
                 pd.DataFrame({"time_sec": t, "zscore": z, spiketrain_col: spiketrain})
             )
         else:
-            out.append(z[t == 0])
+            out.append(z[t == 0][0])
     if return_all:
         df = pd.concat(out, axis=0)
     else:
