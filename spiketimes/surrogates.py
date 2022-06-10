@@ -14,9 +14,10 @@ def shuffled_isi_spiketrain(spiketrain: np.ndarray):
         A numpy array spiketrain containing spiketimes in seconds
     """
     spiketrain = np.copy(spiketrain)
+    t_start = np.min(spiketrain)
     isi: np.ndarray = _isi(spiketrain)
     np.random.shuffle(isi)
-    return np.cumsum(isi)
+    return np.cumsum(isi) + t_start
 
 
 def shuffled_isi_spiketrains(spiketrain: np.ndarray, n: int = 1):
